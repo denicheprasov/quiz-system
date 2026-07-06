@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Панель учителя{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">👨‍🏫 Панель учителя</h4>
+            </div>
+            <div class="card-body">
+                <h5>👋 Привет, {{ user.username }}!</h5>
+                <p class="text-muted">Email: {{ user.email }}</p>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h2 id="totalQuizzes">0</h2>
+                                <p>Всего тестов</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h2 id="totalStudents">0</h2>
+                                <p>Всего учеников</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h2 id="totalBankTasks">0</h2>
+                                <p>Заданий в банке</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                <h5>🚀 Быстрые действия</h5>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <a href="/bank" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="bi bi-database"></i> Банк заданий
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/import" class="btn btn-outline-success w-100 mb-2">
+                            <i class="bi bi-cloud-upload"></i> Импорт
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/variant-builder" class="btn btn-outline-warning w-100 mb-2">
+                            <i class="bi bi-dice"></i> Собрать вариант
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="/create-quiz" class="btn btn-outline-danger w-100 mb-2">
+                            <i class="bi bi-pencil"></i> Создать тест
+                        </a>
+                    </div>
+                </div>
+                
+                <hr>
+                <h5>📋 Мои тесты</h5>
+                <div id="quizzesList">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status"></div>
+                        <p>Загрузка...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const token = localStorage.getItem('access_token');
+if (!token) {
+    window.location.href = '/login';
+}
+
+// Загрузка статистики
+async function loadStats() {
+    try {
+        // Получаем тесты учителя
+        const quizzesResponse = await fetch('/quizzes/my', {
+            headers: {'Authorization': 'Bearer ' + token}
+        });
+        const quizzes = await quizzesResponse.json();
+        document.getElementById('totalQuizzes').textContent = quizzes.length;
+        
+        // Получаем задания из банка
+        const bankResponse = await fetch('/bank/tasks', {
+            headers: {'Authorization': 'Bearer ' + token}
+        });
+        const bankTasks = await bankResponse.json();
+        document.getElementById('totalBankTasks').textContent = bankTasks.length;
+        
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
+}
+
+// Загрузка тестов
+async function loadQuizzes() {
+    const container = document.getElementById('quizzesList');
+    container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    
+    try {
+        const response = await fetch('/quizzes/my', {
+            headers: {'Authorization': 'Bearer ' + token}
+        });
+        const quizzes = await response.json();
+        
+        if (quizzes.length === 0) {
+            container.innerHTML = '<div class="alert alert-info">📭 У вас пока нет созданных тестов</div>';
+            return;
+        }
+        
+        let html = '<div class="row">';
+        quizzes.forEach(quiz => {
+            const questionsCount = quiz.questions ? quiz.questions.length : 0;
+            html += `
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${quiz.title}</h5>
+                            <p class="card-text">${quiz.description || 'Описание отсутствует'}</p>
+                            <p class="text-muted small">Заданий: ${questionsCount}</p>
+                            <a href="/admin" class="btn btn-primary btn-sm">Управлять</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+        
+    } catch (error) {
+        container.innerHTML = '<div class="alert alert-danger">❌ Ошибка загрузки</div>';
+        console.error('Error:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadStats();
+    loadQuizzes();
+});
+</script>
+{% endblock %}

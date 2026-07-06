@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Панель ученика{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">📊 Панель ученика</h4>
+            </div>
+            <div class="card-body">
+                <h5>👋 Привет, {{ user.username }}!</h5>
+                <p class="text-muted">Email: {{ user.email }}</p>
+                
+                <hr>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h2 id="totalAssigned">0</h2>
+                                <p>Выданных тестов</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h2 id="completedAssigned">0</h2>
+                                <p>Пройдено</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h2 id="totalPractice">0</h2>
+                                <p>Тренировок</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">📝 Мои тесты</h5>
+                            </div>
+                            <div class="card-body" id="assignedTests">
+                                <div class="alert alert-info">📭 У вас нет выданных тестов</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">🎯 Быстрые действия</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="/student/bank" class="btn btn-outline-primary">
+                                        <i class="bi bi-book"></i> Смотреть банк заданий
+                                    </a>
+                                    <a href="/student/practice" class="btn btn-outline-success">
+                                        <i class="bi bi-play-circle"></i> Начать тренировку
+                                    </a>
+                                    <a href="/student/generate" class="btn btn-outline-warning">
+                                        <i class="bi bi-dice"></i> Сгенерировать вариант
+                                    </a>
+                                    <a href="/student/history" class="btn btn-outline-secondary">
+                                        <i class="bi bi-clock-history"></i> Моя история
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const token = localStorage.getItem('access_token');
+if (!token) {
+    window.location.href = '/login';
+}
+
+// Загрузка дашборда
+async function loadDashboard() {
+    try {
+        const response = await fetch('/student/api/dashboard', {
+            headers: {'Authorization': 'Bearer ' + token}
+        });
+        const data = await response.json();
+        
+        document.getElementById('totalAssigned').textContent = data.total_assigned || 0;
+        document.getElementById('completedAssigned').textContent = data.completed_assigned || 0;
+        document.getElementById('totalPractice').textContent = data.practice_sessions ? data.practice_sessions.length : 0;
+        
+        // Отображаем выданные тесты
+        const container = document.getElementById('assignedTests');
+        if (data.assigned_tests && data.assigned_tests.length > 0) {
+            let html = '<div class="list-group">';
+            data.assigned_tests.forEach(test => {
+                const statusMap = {
+                    'pending': '⏳ Ожидает',
+                    'in_progress': '🔄 В процессе',
+                    'completed': '✅ Завершен',
+                    'expired': '⏰ Истек'
+                };
+                const status = statusMap[test.status] || test.status;
+                html += `
+                    <a href="/take-quiz/${test.quiz_id}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${test.quiz ? test.quiz.title : 'Тест'}</h6>
+                            <small class="text-muted">${status}</small>
+                        </div>
+                        <small class="text-muted">Выдан: ${new Date(test.assigned_at).toLocaleDateString()}</small>
+                    </a>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '<div class="alert alert-info">📭 У вас нет выданных тестов</div>';
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        // Если ошибка, оставляем значения по умолчанию
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
+{% endblock %}

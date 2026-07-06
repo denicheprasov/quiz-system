@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}Тренировка{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">🎯 Тренировка</h4>
+            </div>
+            <div class="card-body">
+                <!-- Начало тренировки -->
+                <div id="startScreen">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        Выберите настройки тренировки и начните решать задания.
+                    </div>
+                    
+                    <form id="startForm">
+                        <div class="mb-3">
+                            <label class="form-label">Номера заданий</label>
+                            <select class="form-select" id="taskNumbers">
+                                <option value="">Все номера</option>
+                                <option value="1-5">1-5</option>
+                                <option value="6-10">6-10</option>
+                                <option value="11-15">11-15</option>
+                                <option value="16-20">16-20</option>
+                                <option value="21-27">21-27</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Количество заданий</label>
+                            <select class="form-select" id="taskCount">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="15">15</option>
+                                <option value="20">20</option>
+                                <option value="27" selected>Все (27)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-play-circle"></i> Начать тренировку
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Процесс тренировки -->
+                <div id="practiceScreen" style="display:none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 id="progressText">Вопрос 1 из 10</h5>
+                        <span class="badge bg-success" id="scoreText">Правильно: 0</span>
+                    </div>
+                    
+                    <div class="progress mb-3">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    
+                    <div id="taskContainer">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button class="btn btn-secondary" id="prevBtn" onclick="prevTask()">
+                            <i class="bi bi-arrow-left"></i> Назад
+                        </button>
+                        <button class="btn btn-primary" id="nextBtn" onclick="nextTask()">
+                            Далее <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Результат -->
+                <div id="resultScreen" style="display:none;">
+                    <div class="alert alert-success">
+                        <h4>🎉 Тренировка завершена!</h4>
+                        <p>Правильных ответов: <strong id="finalCorrect">0</strong></p>
+                        <p>Всего заданий: <strong id="finalTotal">0</strong></p>
+                        <p>Процент: <strong id="finalPercent">0%</strong></p>
+                        <div class="mt-3">
+                            <a href="/student/practice" class="btn btn-primary">Начать новую</a>
+                            <a href="/student/history" class="btn btn-outline-secondary">История</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const token = localStorage.getItem('access_token');
+if (!token) {
+    window.location.href = '/login';
+}
+
+let sessionId = null;
+let currentTasks = [];
+let currentIndex = 0;
+let correctCount = 0;
+
+document.getElementById('startForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const count = parseInt(document.getElementById('taskCount').value);
+    const numbersSelect = document.getElementById('taskNumbers').value;
+    let taskNumbers = null;
+    
+    if (numbersSelect) {
+        const parts = numbersSelect.split('-');
+        if (parts.length === 2) {
+            taskNumbers = [];
+            for (let i = parseInt(parts[0]); i <= parseInt(parts[1]); i++) {
+                taskNumbers.push(i);
+            }
+        }
+    }
+    
+    const data = {
+        count: count,
+        task_numbers: taskNumbers
+    };
+    
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('practiceScreen').style.display = 'block';
+    
+    try {
+        const response = await fetch('/student/practice/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const session = await response.json();
+        sessionId = session.id;
+        currentTasks = session.tasks || [];
+        currentIndex = 0;
+        correctCount = 0;
+        
+        if (currentTasks.length === 0) {
+            alert('Нет заданий для тренировки');
+            location.reload();
+            return;
+        }
+        
+        showTask(0);
+        updateProgress();
+        
+    } catch (error) {
+        alert('Ошибка начала тренировки');
+        console.error('Error:', error);
+        location.reload();
+    }
+});
+
+function showTask(index) {
+    const container = document.getElementById('taskContainer');
+    const task = currentTasks[index];
+    
+    if (!task) {
+        finishPractice();
+        return;
+    }
+    
+    const taskData = task.task;
+    const answered = task.user_answer !== null && task.user_answer !== undefined;
+    
+    let html = `
+        <div class="card">
+            <div class="card-body">
+                <h6>Задание №${taskData.task_number}</h6>
+                <hr>
+                <p>${taskData.text.replace(/\n/g, '<br>')}</p>
+                <div class="mt-3">
+                    <label class="form-label">Ваш ответ:</label>
+                    <input type="text" class="form-control" id="answerInput" 
+                           value="${task.user_answer || ''}" ${answered ? 'disabled' : ''}>
+                    ${answered ? `
+                        <div class="mt-2">
+                            <span class="badge ${task.is_correct ? 'bg-success' : 'bg-danger'}">
+                                ${task.is_correct ? '✅ Правильно' : '❌ Неправильно'}
+                            </span>
+                            <span class="text-muted ms-2">Правильный ответ: ${taskData.correct_answer}</span>
+                        </div>
+                    ` : `
+                        <button class="btn btn-success mt-2" onclick="submitAnswer(${task.id})">
+                            <i class="bi bi-check"></i> Проверить
+                        </button>
+                    `}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+    
+    // Обновляем кнопки
+    document.getElementById('prevBtn').disabled = index === 0;
+    document.getElementById('nextBtn').disabled = index === currentTasks.length - 1;
+}
+
+async function submitAnswer(taskId) {
+    const input = document.getElementById('answerInput');
+    const answer = input.value.trim();
+    
+    if (!answer) {
+        alert('Введите ответ!');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/student/practice/${sessionId}/answer`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                task_id: taskId,
+                answer: answer
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.is_correct) {
+            correctCount++;
+        }
+        
+        updateProgress();
+        
+        // Обновляем задание
+        const task = currentTasks[currentIndex];
+        task.user_answer = answer;
+        task.is_correct = result.is_correct;
+        task.points_earned = result.points_earned;
+        
+        showTask(currentIndex);
+        
+        if (result.completed) {
+            finishPractice();
+        }
+        
+    } catch (error) {
+        alert('Ошибка при проверке ответа');
+        console.error('Error:', error);
+    }
+}
+
+function updateProgress() {
+    const total = currentTasks.length;
+    const answered = currentTasks.filter(t => t.user_answer !== null && t.user_answer !== undefined).length;
+    const progress = total > 0 ? (answered / total) * 100 : 0;
+    
+    document.getElementById('progressText').textContent = `Вопрос ${currentIndex + 1} из ${total}`;
+    document.getElementById('progressBar').style.width = progress + '%';
+    document.getElementById('scoreText').textContent = `Правильно: ${correctCount}`;
+}
+
+function nextTask() {
+    if (currentIndex < currentTasks.length - 1) {
+        currentIndex++;
+        showTask(currentIndex);
+        updateProgress();
+    }
+}
+
+function prevTask() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        showTask(currentIndex);
+        updateProgress();
+    }
+}
+
+function finishPractice() {
+    document.getElementById('practiceScreen').style.display = 'none';
+    document.getElementById('resultScreen').style.display = 'block';
+    
+    document.getElementById('finalCorrect').textContent = correctCount;
+    document.getElementById('finalTotal').textContent = currentTasks.length;
+    document.getElementById('finalPercent').textContent = currentTasks.length > 0 
+        ? Math.round((correctCount / currentTasks.length) * 100) 
+        : 0;
+}
+</script>
+{% endblock %}

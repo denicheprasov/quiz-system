@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Банк заданий{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">📚 Банк заданий</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Здесь вы можете просматривать все задания из банка. 
+                    Для тренировки перейдите в раздел <a href="/student/practice">Тренировка</a>.
+                </div>
+                
+                <!-- Фильтр -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Номер задания в КИМ</label>
+                        <select class="form-select" id="filterNumber" onchange="loadTasks()">
+                            <option value="">Все номера</option>
+                            {% for i in range(1, 28) %}
+                            <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Поиск</label>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Поиск по тексту...">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-primary w-100" onclick="loadTasks()">
+                            <i class="bi bi-search"></i> Найти
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="tasksList">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status"></div>
+                        <p>Загрузка заданий...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для просмотра задания -->
+<div class="modal fade" id="taskModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📝 Задание</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="taskContent">
+                <div class="text-center"><div class="spinner-border" role="status"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const token = localStorage.getItem('access_token');
+if (!token) {
+    window.location.href = '/login';
+}
+
+function loadTasks() {
+    const container = document.getElementById('tasksList');
+    container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    
+    const number = document.getElementById('filterNumber').value;
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    
+    let url = '/student/api/bank?limit=1000';
+    if (number) url += '&task_number=' + number;
+    
+    fetch(url, {
+        headers: {'Authorization': 'Bearer ' + token}
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка загрузки: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(tasks => {
+        // Фильтр по поиску
+        let filtered = tasks;
+        if (search) {
+            filtered = tasks.filter(t => t.text.toLowerCase().includes(search));
+        }
+        
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="alert alert-info">📭 Заданий не найдено</div>';
+            return;
+        }
+        
+        // Группировка по номерам
+        const grouped = {};
+        filtered.forEach(task => {
+            if (!grouped[task.task_number]) grouped[task.task_number] = [];
+            grouped[task.task_number].push(task);
+        });
+        
+        let html = '<div class="accordion" id="tasksAccordion">';
+        const sortedNumbers = Object.keys(grouped).sort((a, b) => parseInt(a) - parseInt(b));
+        
+        sortedNumbers.forEach(num => {
+            const tasksForNumber = grouped[num];
+            html += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${num}">
+                            Задание №${num} (${tasksForNumber.length} заданий)
+                        </button>
+                    </h2>
+                    <div id="collapse${num}" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">
+                        <div class="accordion-body">
+                            <div class="list-group">
+                    `;
+            
+            tasksForNumber.forEach(task => {
+                const preview = task.text.length > 80 ? task.text.substring(0, 80) + '...' : task.text;
+                html += `
+                    <a href="#" class="list-group-item list-group-item-action" onclick="viewTask(${task.id})">
+                        <div class="d-flex w-100 justify-content-between">
+                            <span>${preview}</span>
+                            <small class="text-muted">ID: ${task.id}</small>
+                        </div>
+                    </a>
+                `;
+            });
+            
+            html += `
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+    })
+    .catch(error => {
+        container.innerHTML = '<div class="alert alert-danger">❌ Ошибка загрузки: ' + error.message + '</div>';
+        console.error('Error:', error);
+    });
+}
+
+function viewTask(taskId) {
+    const modal = new bootstrap.Modal(document.getElementById('taskModal'));
+    modal.show();
+    
+    const container = document.getElementById('taskContent');
+    container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    
+    fetch('/student/api/bank/task/' + taskId, {
+        headers: {'Authorization': 'Bearer ' + token}
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Ошибка загрузки задания');
+        }
+        return response.json();
+    })
+    .then(task => {
+        let html = `
+            <div class="card">
+                <div class="card-body">
+                    <h6>Задание №${task.task_number}</h6>
+                    <hr>
+                    <p>${task.text.replace(/\n/g, '<br>')}</p>
+                    <p class="text-muted"><strong>Источник:</strong> ${task.source_file || 'Не указан'}</p>
+                    <p class="text-muted"><strong>Правильный ответ:</strong> ${task.correct_answer}</p>
+                    <p class="text-muted"><strong>Баллов:</strong> ${task.points}</p>
+                    <a href="/student/practice" class="btn btn-primary">Начать тренировку</a>
+                </div>
+            </div>
+        `;
+        container.innerHTML = html;
+    })
+    .catch(error => {
+        container.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
+        console.error('Error:', error);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', loadTasks);
+</script>
+{% endblock %}

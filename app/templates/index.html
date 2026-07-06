@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <div class="card p-5">
+            <h1 class="display-4">🎓 Система тестирования</h1>
+            <p class="lead">Проверяй знания, создавай тесты, анализируй результаты</p>
+            {% if not user %}
+                <div>
+                    <a href="/login" class="btn btn-primary btn-lg m-2">Войти</a>
+                    <a href="/register" class="btn btn-outline-primary btn-lg m-2">Регистрация</a>
+                </div>
+            {% else %}
+                <div>
+                    <a href="/dashboard" class="btn btn-primary btn-lg m-2">📊 Перейти в панель</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

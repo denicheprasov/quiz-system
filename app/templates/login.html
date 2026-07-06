@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">🔐 Вход</h4>
+            </div>
+            <div class="card-body">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-control" id="username" value="teacher" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" value="123456" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Войти</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <a href="/register">Нет аккаунта? Зарегистрироваться</a>
+                </div>
+                <div id="message" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    try {
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: username, password: password})
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            // Сохраняем токен в localStorage
+            localStorage.setItem('access_token', result.access_token);
+            localStorage.setItem('user', JSON.stringify(result.user));
+            
+            // И также сохраняем в cookies для сервера
+            document.cookie = 'access_token=' + result.access_token + '; path=/';
+            
+            // Перенаправляем на dashboard
+            window.location.href = '/dashboard';
+        } else {
+            document.getElementById('message').innerHTML = 
+                '<div class="alert alert-danger">❌ ' + (result.detail || 'Ошибка входа') + '</div>';
+        }
+    } catch (error) {
+        document.getElementById('message').innerHTML = 
+            '<div class="alert alert-danger">❌ Ошибка соединения</div>';
+        console.error('Error:', error);
+    }
+});
+</script>
+{% endblock %}

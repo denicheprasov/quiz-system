@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Создать тест{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">✏️ Создать новый тест</h4>
+            </div>
+            <div class="card-body">
+                <form id="quizForm">
+                    <!-- Основная информация -->
+                    <div class="mb-3">
+                        <label class="form-label">Название теста</label>
+                        <input type="text" class="form-control" id="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" rows="2"></textarea>
+                    </div>
+                    
+                    <hr>
+                    <h5>Задания</h5>
+                    <div id="questionsContainer"></div>
+                    
+                    <button type="button" class="btn btn-secondary" onclick="addQuestion()">
+                        <i class="bi bi-plus"></i> Добавить задание
+                    </button>
+                    
+                    <hr>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-save"></i> Сохранить тест
+                    </button>
+                </form>
+                <div id="message" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var questionCounter = 0;
+
+// Шаблон для нового задания
+function getQuestionTemplate() {
+    questionCounter++;
+    var id = 'q' + questionCounter;
+    
+    return `
+        <div class="card mb-3 question-card" data-id="${id}">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <strong>Задание #${questionCounter}</strong>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestion(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <label class="form-label">Номер задания (1-27)</label>
+                    <input type="number" class="form-control question-number" min="1" max="27" required>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Тип задания</label>
+                    <select class="form-control task-type">
+                        <option value="standard">1-25 (1 балл за всё задание)</option>
+                        <option value="extended">26-27 (по 1 баллу за каждое поле)</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Текст задания</label>
+                    <textarea class="form-control question-text" rows="3" required></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">URL изображения (опционально)</label>
+                        <input type="text" class="form-control question-image" placeholder="https://example.com/image.png">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">URL файла (опционально)</label>
+                        <input type="text" class="form-control question-file" placeholder="https://example.com/file.pdf">
+                    </div>
+                </div>
+                
+                <hr>
+                <h6 class="mt-3">Настройка ответов</h6>
+                <p class="text-muted small">
+                    <span id="pointsInfo">Задание 1-25: 1 балл за все правильные ответы</span>
+                </p>
+                
+                <div class="mb-2">
+                    <label class="form-label">Количество полей для ответа</label>
+                    <input type="number" class="form-control answer-count" value="1" min="1" max="10" 
+                           onchange="updateAnswerFields(this)">
+                </div>
+                
+                <div class="answers-container">
+                    <div class="answer-row row mb-2">
+                        <div class="col-md-12">
+                            <label class="form-label">Правильный ответ</label>
+                            <input type="text" class="form-control correct-answer" placeholder="Например: 42">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Обновление полей для ответов
+function updateAnswerFields(input) {
+    var card = input.closest('.question-card');
+    var container = card.querySelector('.answers-container');
+    var count = parseInt(input.value) || 1;
+    var taskType = card.querySelector('.task-type').value;
+    
+    var html = '';
+    for (var i = 1; i <= count; i++) {
+        html += `
+            <div class="answer-row row mb-2">
+                <div class="col-md-12">
+                    <label class="form-label">Правильный ответ ${i}</label>
+                    <input type="text" class="form-control correct-answer" placeholder="Например: 42" required>
+                </div>
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+    
+    // Обновляем информацию о баллах
+    updatePointsInfo(card);
+}
+
+// Обновление информации о баллах
+function updatePointsInfo(card) {
+    var taskType = card.querySelector('.task-type').value;
+    var infoSpan = card.querySelector('#pointsInfo');
+    if (taskType === 'extended') {
+        var fields = card.querySelectorAll('.correct-answer');
+        infoSpan.textContent = 'Задание 26-27: по 1 баллу за каждое правильное поле (максимум ' + fields.length + ' баллов)';
+    } else {
+        infoSpan.textContent = 'Задание 1-25: 1 балл за все правильные ответы';
+    }
+}
+
+// Добавление нового задания
+function addQuestion() {
+    var container = document.getElementById('questionsContainer');
+    container.insertAdjacentHTML('beforeend', getQuestionTemplate());
+}
+
+// Удаление задания
+function removeQuestion(btn) {
+    var card = btn.closest('.question-card');
+    if (confirm('Удалить это задание?')) {
+        card.remove();
+    }
+}
+
+// Обработка изменения типа задания
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('task-type')) {
+        var card = e.target.closest('.question-card');
+        updatePointsInfo(card);
+    }
+});
+
+// Сбор данных формы
+document.getElementById('quizForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    var token = localStorage.getItem('access_token');
+    if (!token) {
+        window.location.href = '/login';
+        return;
+    }
+    
+    var questions = [];
+    var questionCards = document.querySelectorAll('.question-card');
+    
+    for (var i = 0; i < questionCards.length; i++) {
+        var card = questionCards[i];
+        
+        var number = parseInt(card.querySelector('.question-number').value);
+        var text = card.querySelector('.question-text').value;
+        var image_url = card.querySelector('.question-image').value;
+        var file_url = card.querySelector('.question-file').value;
+        var task_type = card.querySelector('.task-type').value;
+        
+        var answerFields = card.querySelectorAll('.correct-answer');
+        var correct_answers = [];
+        
+        for (var j = 0; j < answerFields.length; j++) {
+            var answer = answerFields[j].value;
+            if (answer) {
+                correct_answers.push(answer);
+            }
+        }
+        
+        if (correct_answers.length === 0) {
+            alert('У задания #' + number + ' нет правильных ответов!');
+            return;
+        }
+        
+        questions.push({
+            number: number,
+            text: text,
+            image_url: image_url || null,
+            file_url: file_url || null,
+            answer_count: correct_answers.length,
+            correct_answers: correct_answers,
+            task_type: task_type
+        });
+    }
+    
+    if (questions.length === 0) {
+        alert('Добавьте хотя бы одно задание!');
+        return;
+    }
+    
+    var data = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        questions: questions
+    };
+    
+    try {
+        var response = await fetch('/quizzes/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(data)
+        });
+        
+        var result = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('message').innerHTML = 
+                '<div class="alert alert-success">✅ Тест создан! <a href="/dashboard">Вернуться</a></div>';
+            document.getElementById('quizForm').reset();
+            document.getElementById('questionsContainer').innerHTML = '';
+            questionCounter = 0;
+        } else {
+            document.getElementById('message').innerHTML = 
+                '<div class="alert alert-danger">❌ ' + (result.detail || 'Ошибка') + '</div>';
+        }
+    } catch (error) {
+        document.getElementById('message').innerHTML = 
+            '<div class="alert alert-danger">❌ Ошибка соединения</div>';
+        console.error('Error:', error);
+    }
+});
+
+// Добавляем первое задание автоматически
+document.addEventListener('DOMContentLoaded', function() {
+    addQuestion();
+});
+</script>
+{% endblock %}

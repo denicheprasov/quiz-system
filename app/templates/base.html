@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Система тестирования{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .navbar-brand { font-weight: bold; }
+        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-primary { border-radius: 10px; }
+        .dropdown-menu { border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-mortarboard"></i> Quiz System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user %}
+                        {% if user.is_teacher %}
+                            <!-- Меню учителя -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="teacherDropdown" role="button" data-bs-toggle="dropdown">
+                                    👨‍🏫 Учитель
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="/teacher/dashboard">📊 Панель учителя</a></li>
+                                    <li><a class="dropdown-item" href="/admin">⚙️ Админ-панель</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/bank">📚 Банк заданий</a></li>
+                                    <li><a class="dropdown-item" href="/import">📥 Импорт</a></li>
+                                    <li><a class="dropdown-item" href="/variant-builder">🎲 Собрать вариант</a></li>
+                                    <li><a class="dropdown-item" href="/create-quiz">✏️ Создать тест</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <!-- Меню ученика -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown">
+                                    👨‍🎓 Ученик
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="/student/dashboard">📊 Панель ученика</a></li>
+                                    <li><a class="dropdown-item" href="/student/bank">📚 Банк заданий</a></li>
+                                    <li><a class="dropdown-item" href="/student/practice">🎯 Тренировка</a></li>
+                                    <li><a class="dropdown-item" href="/student/generate">🎲 Сгенерировать вариант</a></li>
+                                    <li><a class="dropdown-item" href="/student/history">📜 История</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <span class="nav-link">👋 {{ user.username }}</span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout">🚪 Выйти</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">Вход</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register">Регистрация</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function getToken() {
+            return localStorage.getItem('access_token');
+        }
+        
+        function logout() {
+            localStorage.removeItem('access_token');
+            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

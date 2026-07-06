@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">📝 Регистрация</h4>
+            </div>
+            <div class="card-body">
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-control" id="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="isTeacher">
+                        <label class="form-check-label">Я учитель</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <a href="/login">Уже есть аккаунт? Войти</a>
+                </div>
+                <div id="message" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        is_teacher: document.getElementById('isTeacher').checked
+    };
+    
+    try {
+        const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (response.ok) {
+            document.getElementById('message').innerHTML = 
+                '<div class="alert alert-success">✅ Регистрация успешна! <a href="/login">Войти</a></div>';
+        } else {
+            document.getElementById('message').innerHTML = 
+                `<div class="alert alert-danger">❌ ${result.detail}</div>`;
+        }
+    } catch (error) {
+        document.getElementById('message').innerHTML = 
+            '<div class="alert alert-danger">❌ Ошибка соединения</div>';
+    }
+});
+</script>
+{% endblock %}
