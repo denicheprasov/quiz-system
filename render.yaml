@@ -7,7 +7,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
-      - key: DATABASE_URL
-        sync: false
       - key: ALLOWED_ORIGINS
         value: https://quiz-system.onrender.com
