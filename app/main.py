@@ -12,6 +12,15 @@ from app.auth import get_current_user, get_user_from_request
 from sqlalchemy.orm import Session
 import os
 
+from sqlalchemy import text
+
+try:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE task_bank ADD COLUMN file_url VARCHAR(500)"))
+        conn.commit()
+except Exception:
+    pass
+
 try:
     Base.metadata.create_all(bind=engine)
 except Exception as e:
