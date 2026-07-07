@@ -156,7 +156,8 @@ def import_tasks(
 
 @router.post("/import-url")
 def import_from_url(
-    url: str = Form(...),
+    url: str = Form(""),
+    html: str = Form(""),
     task_number: int = Form(...),
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user),
@@ -168,7 +169,7 @@ def import_from_url(
         raise HTTPException(status_code=400, detail="Task number must be between 1 and 27")
 
     parser = KpolyakovParser()
-    result = parser.parse_page(url, task_number, db)
+    result = parser.parse_page(url=url or None, html=html or None, task_number=task_number, db_session=db)
     return result
 
 

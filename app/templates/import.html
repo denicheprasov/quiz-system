@@ -86,8 +86,9 @@
                     <div class="tab-pane fade" id="webTab">
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle"></i>
-                            <strong>Сайт К. Полякова:</strong> Вставьте ссылку на страницу с заданиями.<br>
-                            Парсер извлечёт текст, ответы и изображения.
+                            <strong>Сайт К. Полякова:</strong>
+                            Открой страницу в браузере → <b>Ctrl+U</b> (исходный код) → <b>Ctrl+A</b> → <b>Ctrl+C</b> → вставь ниже.<br>
+                            Или просто вставь ссылку — сервер попробует загрузить сам.
                         </div>
                         <form class="import-form" data-action="/bank/import-url" data-type="url">
                             <div class="mb-3">
@@ -100,13 +101,17 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Ссылка на страницу</label>
+                                <label class="form-label">Ссылка на страницу (если доступна)</label>
                                 <input type="url" class="form-control url-input"
-                                    placeholder="https://kpolyakov.spb.ru/school/ege/gen.php?action=viewAllEgeNo&egeId=..."
-                                    required>
+                                    placeholder="https://kpolyakov.spb.ru/school/ege/gen.php?action=viewAllEgeNo&egeId=...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Или вставьте HTML страницы</label>
+                                <textarea class="form-control html-input" rows="6"
+                                    placeholder="Ctrl+U → Ctrl+A → Ctrl+C → вставьте сюда"></textarea>
                             </div>
                             <button type="submit" class="btn btn-success w-100 submit-btn">
-                                <i class="bi bi-globe"></i> Загрузить с сайта
+                                <i class="bi bi-globe"></i> Извлечь задания
                             </button>
                         </form>
                     </div>
@@ -142,8 +147,10 @@ document.querySelectorAll('.import-form').forEach(function(form) {
 
         if (form.dataset.type === 'url') {
             const url = form.querySelector('.url-input').value;
-            if (!url) { alert('Введите ссылку!'); return; }
+            const rawHtml = form.querySelector('.html-input').value;
+            if (!url && !rawHtml) { alert('Введите ссылку или вставьте HTML!'); return; }
             formData.append('url', url);
+            formData.append('html', rawHtml);
         } else {
             const file = form.querySelector('.file-input').files[0];
             if (!file) { alert('Выберите файл!'); return; }

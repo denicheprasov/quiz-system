@@ -19,7 +19,7 @@ class KpolyakovParser:
 
     def _fetch_html(self, url: str) -> str:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=60) as resp:
             return resp.read().decode("utf-8")
 
     def _extract_from_script(self, script_tag: Tag) -> str:
@@ -68,7 +68,7 @@ class KpolyakovParser:
                     images.append(url)
         return images
 
-    def parse_page(self, url: str, task_number: int, db_session=None) -> Dict:
+    def parse_page(self, url: str = None, html: str = None, task_number: int = 0, db_session=None) -> Dict:
         imported = []
         errors = []
 
@@ -78,7 +78,14 @@ class KpolyakovParser:
             close_db = True
 
         try:
-            html = self._fetch_html(url)
+            if html:
+                pass
+            elif url:
+                html = self._fetch_html(url)
+            else:
+                if close_db:
+                    db_session.close()
+                return {"total": 0, "imported": 0, "skipped": 0, "errors": ["Укажите URL или вставьте HTML"], "tasks": []}
         except Exception as e:
             if close_db:
                 db_session.close()
