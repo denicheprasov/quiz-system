@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from app import models, schemas, auth, database
 from app.services.import_service import ImportService
+from app.services.kpolyakov_parser import KpolyakovParser
 
 router = APIRouter(prefix="/bank", tags=["bank"])
 
@@ -151,6 +152,24 @@ def import_tasks(
             "errors": [str(e)],
             "tasks": [],
         }
+
+
+@router.post("/import-url")
+def import_from_url(
+    url: str = Form(...),
+    task_number: int = Form(...),
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403, detail="Only teachers can import tasks")
+
+    if task_number < 1 or task_number > 27:
+        raise HTTPException(status_code=400, detail="Task number must be between 1 and 27")
+
+    parser = KpolyakovParser()
+    result = parser.parse_page(url, task_number, db)
+    return result
 
 
 @router.get("/tasks/{task_id}", response_model=schemas.TaskBankResponse)

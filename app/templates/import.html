@@ -15,7 +15,10 @@
                         <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#txtTab">📄 TXT</button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#zipTab">📦 ZIP (с картинками)</button>
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#zipTab">📦 ZIP</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#webTab">🌐 С сайта</button>
                     </li>
                 </ul>
 
@@ -23,48 +26,91 @@
                     <div class="tab-pane fade show active" id="txtTab">
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle"></i>
-                            <strong>TXT:</strong> Создайте .txt файл с заданиями одного номера.<br>
+                            <strong>TXT:</strong> Файл с заданиями одного номера.<br>
                             Каждое задание начинается с номера: <code>1)</code> <code>2)</code> <code>3)</code> и т.д.
                         </div>
+                        <form class="import-form" enctype="multipart/form-data" data-action="/bank/import" data-type="txt">
+                            <div class="mb-3">
+                                <label class="form-label">Номер задания</label>
+                                <select class="form-select task-number" required>
+                                    <option value="">Выберите номер</option>
+                                    {% for i in range(1, 28) %}
+                                    <option value="{{ i }}">{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Файл (.txt)</label>
+                                <input type="file" class="form-control file-input" accept=".txt" required>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 submit-btn">
+                                <i class="bi bi-cloud-upload"></i> Импорт
+                            </button>
+                        </form>
                     </div>
+
                     <div class="tab-pane fade" id="zipTab">
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle"></i>
-                            <strong>ZIP:</strong> Упакуйте задания в папки по номерам:<br>
+                            <strong>ZIP:</strong> Папки по номерам заданий:<br>
                             <pre class="mb-0 mt-1" style="font-size:0.85rem">
 1/
-  text.txt          — текст задания
-  answer.txt        — ответ (опционально)
-  image.png         — картинка (опционально)
+  text.txt
+  answer.txt
+  image.png
 2/
   text.txt
   image.jpg
-  answer.txt
 ...</pre>
                         </div>
+                        <form class="import-form" enctype="multipart/form-data" data-action="/bank/import" data-type="zip">
+                            <div class="mb-3">
+                                <label class="form-label">Номер задания</label>
+                                <select class="form-select task-number" required>
+                                    <option value="">Выберите номер</option>
+                                    {% for i in range(1, 28) %}
+                                    <option value="{{ i }}">{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Файл (.zip)</label>
+                                <input type="file" class="form-control file-input" accept=".zip" required>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 submit-btn">
+                                <i class="bi bi-cloud-upload"></i> Импорт
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="webTab">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Сайт К. Полякова:</strong> Вставьте ссылку на страницу с заданиями.<br>
+                            Парсер извлечёт текст, ответы и изображения.
+                        </div>
+                        <form class="import-form" data-action="/bank/import-url" data-type="url">
+                            <div class="mb-3">
+                                <label class="form-label">Номер задания в КИМ ЕГЭ</label>
+                                <select class="form-select task-number" required>
+                                    <option value="">Выберите номер</option>
+                                    {% for i in range(1, 28) %}
+                                    <option value="{{ i }}">{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Ссылка на страницу</label>
+                                <input type="url" class="form-control url-input"
+                                    placeholder="https://kpolyakov.spb.ru/school/ege/gen.php?action=viewAllEgeNo&egeId=..."
+                                    required>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 submit-btn">
+                                <i class="bi bi-globe"></i> Загрузить с сайта
+                            </button>
+                        </form>
                     </div>
                 </div>
-
-                <form id="importForm" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label class="form-label">Номер задания в КИМ ЕГЭ</label>
-                        <select class="form-select" id="taskNumber" required>
-                            <option value="">Выберите номер</option>
-                            {% for i in range(1, 28) %}
-                            <option value="{{ i }}">{{ i }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Файл (.txt или .zip)</label>
-                        <input type="file" class="form-control" id="fileInput" accept=".txt,.zip" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-success w-100" id="importBtn">
-                        <i class="bi bi-cloud-upload"></i> Начать импорт
-                    </button>
-                </form>
 
                 <div id="progress" class="d-none mt-3">
                     <div class="text-center">
@@ -80,66 +126,76 @@
 </div>
 
 <script>
-document.getElementById('importForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+document.querySelectorAll('.import-form').forEach(function(form) {
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
 
-    const fileInput = document.getElementById('fileInput');
-    const taskNumber = document.getElementById('taskNumber').value;
-    const file = fileInput.files[0];
+        const action = form.dataset.action;
+        const taskNumber = form.querySelector('.task-number').value;
+        const progress = document.getElementById('progress');
+        const result = document.getElementById('result');
 
-    if (!taskNumber) { alert('Выберите номер задания!'); return; }
-    if (!file) { alert('Выберите файл!'); return; }
+        if (!taskNumber) { alert('Выберите номер задания!'); return; }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('task_number', taskNumber);
+        const formData = new FormData();
+        formData.append('task_number', taskNumber);
 
-    document.getElementById('importBtn').disabled = true;
-    document.getElementById('progress').classList.remove('d-none');
-    document.getElementById('result').classList.add('d-none');
-
-    try {
-        const response = await fetch('/bank/import', {
-            method: 'POST',
-            credentials: 'include',
-            body: formData
-        });
-
-        const result = await response.json();
-        document.getElementById('progress').classList.add('d-none');
-        document.getElementById('result').classList.remove('d-none');
-
-        if (result.errors && result.errors.length > 0) {
-            let html = '<div class="alert alert-danger"><h5>❌ Ошибки:</h5><ul>';
-            result.errors.forEach(function(err) { html += '<li>' + err + '</li>'; });
-            html += '</ul></div>';
-            if (result.imported > 0) {
-                html += '<div class="alert alert-warning">Частично импортировано: ' + result.imported + '</div>';
-            }
-            document.getElementById('result').innerHTML = html;
-            return;
+        if (form.dataset.type === 'url') {
+            const url = form.querySelector('.url-input').value;
+            if (!url) { alert('Введите ссылку!'); return; }
+            formData.append('url', url);
+        } else {
+            const file = form.querySelector('.file-input').files[0];
+            if (!file) { alert('Выберите файл!'); return; }
+            formData.append('file', file);
         }
 
-        let html = '<div class="alert alert-success">';
-        html += '<h5>✅ Импорт завершен для задания №' + taskNumber + '!</h5>';
-        html += '<ul>';
-        html += '<li>Всего: ' + (result.total || 0) + '</li>';
-        html += '<li>Импортировано: ' + (result.imported || 0) + '</li>';
-        html += '<li>Пропущено (дубликаты): ' + (result.skipped || 0) + '</li>';
-        html += '</ul>';
-        html += '<a href="/bank" class="btn btn-primary mt-2">📚 Перейти в банк</a>';
-        html += '</div>';
+        form.querySelector('.submit-btn').disabled = true;
+        progress.classList.remove('d-none');
+        result.classList.add('d-none');
 
-        document.getElementById('result').innerHTML = html;
+        try {
+            const response = await fetch(action, {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            });
 
-    } catch (error) {
-        document.getElementById('progress').classList.add('d-none');
-        document.getElementById('result').classList.remove('d-none');
-        document.getElementById('result').innerHTML =
-            '<div class="alert alert-danger">❌ Ошибка: ' + error.message + '</div>';
-    } finally {
-        document.getElementById('importBtn').disabled = false;
-    }
+            const data = await response.json();
+            progress.classList.add('d-none');
+            result.classList.remove('d-none');
+
+            if (data.errors && data.errors.length > 0) {
+                let html = '<div class="alert alert-danger"><h5>❌ Ошибки:</h5><ul>';
+                data.errors.forEach(function(err) { html += '<li>' + err + '</li>'; });
+                html += '</ul></div>';
+                if (data.imported > 0) {
+                    html += '<div class="alert alert-warning">Частично импортировано: ' + data.imported + '</div>';
+                }
+                result.innerHTML = html;
+                return;
+            }
+
+            let html = '<div class="alert alert-success">';
+            html += '<h5>✅ Импорт завершен!</h5>';
+            html += '<ul>';
+            html += '<li>Всего: ' + (data.total || 0) + '</li>';
+            html += '<li>Импортировано: ' + (data.imported || 0) + '</li>';
+            html += '<li>Пропущено (дубликаты): ' + (data.skipped || 0) + '</li>';
+            html += '</ul>';
+            html += '<a href="/bank" class="btn btn-primary mt-2">📚 Перейти в банк</a>';
+            html += '</div>';
+
+            result.innerHTML = html;
+
+        } catch (error) {
+            progress.classList.add('d-none');
+            result.classList.remove('d-none');
+            result.innerHTML = '<div class="alert alert-danger">❌ Ошибка: ' + error.message + '</div>';
+        } finally {
+            form.querySelector('.submit-btn').disabled = false;
+        }
+    });
 });
 </script>
 {% endblock %}
