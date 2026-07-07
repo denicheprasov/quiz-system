@@ -2,6 +2,9 @@ from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.limiter import limiter
 from app.database import engine, Base, get_db
 from app.routes import auth, quizzes, bank, variants, student
 from app.auth import get_current_user, get_user_from_request
@@ -15,6 +18,8 @@ except Exception as e:
     print(f"Failed to create tables: {e}")
 
 app = FastAPI(title="Quiz App", version="1.0.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 templates = Jinja2Templates(directory="app/templates")
 

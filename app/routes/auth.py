@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy.orm import Session
+from app.limiter import limiter
 from app import models, schemas, auth, database
 from datetime import timedelta
 import os
@@ -7,6 +8,8 @@ import os
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 IS_PRODUCTION = os.environ.get("RENDER", "") or os.environ.get("IS_PRODUCTION", "")
+RATE_LIMIT_ENABLED = os.environ.get("RATE_LIMIT_ENABLED", "1") == "1"
+
 
 @router.post("/register")
 def register(
@@ -52,12 +55,8 @@ def register(
         "user": db_user
     }
 
-@router.post("/login", response_model=schemas.Token)
-def login(
-    user_data: dict,
-    response: Response,
-    db: Session = Depends(database.get_db)
-):
+
+def login_route(request: Request, user_data: dict, response: Response, db: Session):
     user = auth.authenticate_user(db, user_data.get("username"), user_data.get("password"))
     if not user:
         raise HTTPException(
@@ -85,6 +84,17 @@ def login(
         "token_type": "bearer",
         "user": user
     }
+
+
+if RATE_LIMIT_ENABLED:
+    @router.post("/login", response_model=schemas.Token)
+    @limiter.limit("10/minute")
+    def login(request: Request, user_data: dict, response: Response, db: Session = Depends(database.get_db)):
+        return login_route(request, user_data, response, db)
+else:
+    @router.post("/login", response_model=schemas.Token)
+    def login(request: Request, user_data: dict, response: Response, db: Session = Depends(database.get_db)):
+        return login_route(request, user_data, response, db)
 
 @router.post("/logout")
 def logout(response: Response):
