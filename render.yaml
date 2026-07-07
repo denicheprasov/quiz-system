@@ -11,3 +11,5 @@ services:
       # postgresql://postgres:password@db.xxxx.supabase.co:5432/postgres
       - key: ALLOWED_ORIGINS
         value: https://quiz-system-ps4o.onrender.com
+      - key: SECRET_KEY
+        value: 78f1fe3547d298be1bff8d69a48f42c31a8ff9c1b334c6063c314f10ef23b813
