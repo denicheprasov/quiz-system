@@ -51,21 +51,29 @@ class KpolyakovParser:
         filepath = os.path.join(UPLOAD_DIR, filename)
         try:
             req = urllib.request.Request(img_url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:
                 with open(filepath, "wb") as f:
                     f.write(resp.read())
             return f"/uploads/{filename}"
         except Exception:
-            return img_url
+            if img_url.startswith("http"):
+                return img_url
+            return None
+
+    def _extract_images_from_html(self, html_text: str) -> List[str]:
+        urls = []
+        for match in re.finditer(r'<img\s+src="([^"]+)"', html_text):
+            src = match.group(1)
+            url = self._download_image(src)
+            if url:
+                urls.append(url)
+        return urls
 
     def _extract_images(self, topic_td: Tag) -> List[str]:
-        images = []
-        for img in topic_td.find_all("img"):
-            src = img.get("src", "")
-            if src:
-                url = self._download_image(src)
-                if url:
-                    images.append(url)
+        images = self._extract_images_from_html(str(topic_td))
+        for script in topic_td.find_all("script"):
+            script_text = script.get_text()
+            images.extend(self._extract_images_from_html(script_text))
         return images
 
     def parse_page(self, url: str = None, html: str = None, task_number: int = 0, db_session=None) -> Dict:
