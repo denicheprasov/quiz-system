@@ -13,6 +13,7 @@ UPLOAD_DIR = os.path.normpath(os.path.join(
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 BASE_URL = "https://kpolyakov.spb.ru/school/ege"
+IMAGE_BASE_URL = "https://kpolyakov.spb.ru/cms/images"
 
 
 class KpolyakovParser:
@@ -41,7 +42,7 @@ class KpolyakovParser:
         if img_url.startswith("/"):
             img_url = f"https://kpolyakov.spb.ru{img_url}"
         elif not img_url.startswith("http"):
-            img_url = f"{BASE_URL}/{img_url}"
+            img_url = f"{IMAGE_BASE_URL}/{img_url}"
 
         ext = os.path.splitext(img_url)[1].lower()
         if ext not in (".gif", ".png", ".jpg", ".jpeg"):
