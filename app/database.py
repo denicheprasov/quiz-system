@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
+IS_PRODUCTION = os.environ.get("RENDER", "") or os.environ.get("IS_PRODUCTION", "")
 
 if DATABASE_URL and "postgres" in DATABASE_URL:
     try:
@@ -13,6 +14,11 @@ if DATABASE_URL and "postgres" in DATABASE_URL:
         DATABASE_URL = None
 
 if not DATABASE_URL or "postgres" not in DATABASE_URL:
+    if IS_PRODUCTION:
+        raise RuntimeError(
+            "DATABASE_URL is not set. Configure Supabase PostgreSQL URL in "
+            "Render Dashboard -> Environment Variables -> DATABASE_URL"
+        )
     DATA_DIR = os.environ.get(
         "DATA_DIR",
         os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
