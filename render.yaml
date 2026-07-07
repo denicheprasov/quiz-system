@@ -10,4 +10,4 @@ services:
       # Укажи DATABASE_URL в Dashboard → Environment Variables
       # postgresql://postgres:password@db.xxxx.supabase.co:5432/postgres
       - key: ALLOWED_ORIGINS
-        value: https://quiz-system.onrender.com
+        value: https://quiz-system-ps4o.onrender.com
