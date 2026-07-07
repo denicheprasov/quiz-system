@@ -228,6 +228,20 @@ def delete_task(
     return {"message": "Task deleted successfully"}
 
 
+@router.delete("/tasks")
+def delete_all_tasks(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403, detail="Only teachers can delete tasks")
+
+    count = db.query(models.TaskBank).count()
+    db.query(models.TaskBank).delete()
+    db.commit()
+    return {"message": f"Deleted {count} tasks"}
+
+
 @router.post("/tasks/{task_id}/verify")
 def verify_task(
     task_id: int,
