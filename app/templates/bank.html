@@ -107,67 +107,6 @@
 </div>
 
 <script>
-// bank v2 - large comment block for deploy testing
-// 1
-// 2
-// 3
-// 4
-// 5
-// 6
-// 7
-// 8
-// 9
-// 10
-// 11
-// 12
-// 13
-// 14
-// 15
-// 16
-// 17
-// 18
-// 19
-// 20
-// 21
-// 22
-// 23
-// 24
-// 25
-// 26
-// 27
-// 28
-// 29
-// 30
-// 31
-// 32
-// 33
-// 34
-// 35
-// 36
-// 37
-// 38
-// 39
-// 40
-// 41
-// 42
-// 43
-// 44
-// 45
-// 46
-// 47
-// 48
-// 49
-// 50
-// 51
-// 52
-// 53
-// 54
-// 55
-// 56
-// 57
-// 58
-// 59
-// 60
 function loadTasks(filters) {
     var container = document.getElementById('tasksList');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
@@ -235,13 +174,13 @@ function loadTasks(filters) {
                     '<span class="badge bg-success">✅ Проверено</span>' : 
                     '<span class="badge bg-warning text-dark">⏳ Не проверено</span>';
                 
-                html += '<tr>';
+                html += '<tr data-task-id="' + task.id + '">';
                 html += '<td>' + task.order_in_file + '</td>';
                 html += '<td>' + task.id + '</td>';
                 html += '<td>' + task.text.substring(0, 50) + '...</td>';
                 html += '<td><strong>' + task.correct_answer + '</strong></td>';
-                html += '<td>' + status + '</td>';
-                html += '<td>';
+                html += '<td class="status-cell">' + status + '</td>';
+                html += '<td class="action-cell">';
                 html += '<button class="btn btn-info btn-sm" onclick="viewTask(' + task.id + ')">👁️</button>';
                 if (!task.is_verified) {
                     html += '<button class="btn btn-success btn-sm" onclick="verifyTask(' + task.id + ')">✅</button>';
@@ -314,7 +253,7 @@ function viewTask(taskId) {
 
 function verifyTask(taskId) {
     if (!confirm('Отметить задание как проверенное?')) return;
-    
+
     fetch('/bank/tasks/' + taskId + '/verify', {
         method: 'POST',
         credentials: 'include'
@@ -323,7 +262,16 @@ function verifyTask(taskId) {
         return response.json();
     })
     .then(function() {
-        applyFilters();
+        var row = document.querySelector('tr[data-task-id="' + taskId + '"]');
+        if (row) {
+            var cell = row.querySelector('.status-cell');
+            if (cell) cell.innerHTML = '<span class="badge bg-success">Проверено</span>';
+            var actionCell = row.querySelector('.action-cell');
+            if (actionCell) {
+                var btn = actionCell.querySelector('.btn-success');
+                if (btn) btn.remove();
+            }
+        }
     })
     .catch(function(error) {
         alert('Ошибка при подтверждении');
@@ -333,7 +281,7 @@ function verifyTask(taskId) {
 
 function deleteTask(taskId) {
     if (!confirm('Удалить задание?')) return;
-    
+
     fetch('/bank/tasks/' + taskId, {
         method: 'DELETE',
         credentials: 'include'
@@ -342,7 +290,15 @@ function deleteTask(taskId) {
         return response.json();
     })
     .then(function() {
-        applyFilters();
+        var row = document.querySelector('tr[data-task-id="' + taskId + '"]');
+        if (row) {
+            var tbody = row.closest('tbody');
+            row.remove();
+            if (tbody && tbody.querySelectorAll('tr').length === 0) {
+                var item = tbody.closest('.accordion-item');
+                if (item) item.remove();
+            }
+        }
     })
     .catch(function(error) {
         alert('Ошибка при удалении');
