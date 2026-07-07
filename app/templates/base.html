@@ -7,11 +7,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; }
+        body { background: var(--bs-gray-100); }
+        [data-bs-theme="dark"] body { background: var(--bs-gray-900); }
         .navbar-brand { font-weight: bold; }
         .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-primary { border-radius: 10px; }
         .dropdown-menu { border-radius: 10px; }
+        .theme-icon { cursor: pointer; font-size: 1.2rem; }
     </style>
 </head>
 <body>
@@ -25,7 +27,6 @@
                 <ul class="navbar-nav ms-auto">
                     {% if user %}
                         {% if user.is_teacher %}
-                            <!-- Меню учителя -->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="teacherDropdown" role="button" data-bs-toggle="dropdown">
                                     👨‍🏫 Учитель
@@ -41,7 +42,6 @@
                                 </ul>
                             </li>
                         {% else %}
-                            <!-- Меню ученика -->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown">
                                     👨‍🎓 Ученик
@@ -69,6 +69,11 @@
                             <a class="nav-link" href="/register">Регистрация</a>
                         </li>
                     {% endif %}
+                    <li class="nav-item">
+                        <span class="nav-link theme-icon" id="themeToggle" title="Переключить тему">
+                            <i id="themeIcon" class="bi bi-moon-fill"></i>
+                        </span>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -79,6 +84,18 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        document.getElementById('themeIcon').className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
 
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-bs-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', next);
+            localStorage.setItem('theme', next);
+            document.getElementById('themeIcon').className = next === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+        });
+    </script>
 </body>
 </html>

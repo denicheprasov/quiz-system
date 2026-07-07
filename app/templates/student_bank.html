@@ -172,6 +172,7 @@ function viewTask(taskId) {
                     <h6>Задание №${task.task_number}</h6>
                     <hr>
                     <p>${task.text.replace(/\n/g, '<br>')}</p>
+                    ${task.image_url ? `<img src="${task.image_url}" class="img-fluid rounded mb-2" style="max-height:300px">` : ''}
                     <p class="text-muted"><strong>Источник:</strong> ${task.source_file || 'Не указан'}</p>
                     <p class="text-muted"><strong>Правильный ответ:</strong> ${task.correct_answer}</p>
                     <p class="text-muted"><strong>Баллов:</strong> ${task.points}</p>

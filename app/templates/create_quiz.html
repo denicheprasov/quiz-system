@@ -72,15 +72,18 @@ function getQuestionTemplate() {
                     <label class="form-label">Текст задания</label>
                     <textarea class="form-control question-text" rows="3" required></textarea>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label">URL изображения (опционально)</label>
-                        <input type="text" class="form-control question-image" placeholder="https://example.com/image.png">
+                <div class="mb-2">
+                    <label class="form-label">Изображение (перетащите или нажмите для выбора)</label>
+                    <div class="drop-zone border rounded p-3 text-center text-muted" style="cursor:pointer; border-style:dashed !important;">
+                        <i class="bi bi-image fs-3"></i>
+                        <p class="mb-0 small">Перетащите файл сюда или кликните, чтобы выбрать</p>
+                        <input type="file" class="d-none question-image-input" accept="image/*,.pdf">
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">URL файла (опционально)</label>
-                        <input type="text" class="form-control question-file" placeholder="https://example.com/file.pdf">
+                    <div class="image-preview mt-2 d-none">
+                        <img class="img-fluid rounded" style="max-height:200px">
+                        <button type="button" class="btn btn-sm btn-outline-danger mt-1 remove-image">🗑 Удалить</button>
                     </div>
+                    <input type="hidden" class="question-image">
                 </div>
                 
                 <hr>
@@ -166,6 +169,99 @@ document.addEventListener('change', function(e) {
     }
 });
 
+// Drag & drop загрузка изображений
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.drop-zone')) {
+        var zone = e.target.closest('.drop-zone');
+        var input = zone.querySelector('.question-image-input');
+        input.click();
+    }
+});
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('question-image-input')) {
+        handleImageUpload(e.target);
+    }
+});
+
+document.addEventListener('dragover', function(e) {
+    var zone = e.target.closest('.drop-zone');
+    if (zone) {
+        e.preventDefault();
+        zone.style.borderColor = 'var(--bs-primary)';
+        zone.style.background = 'var(--bs-primary-bg-subtle)';
+    }
+});
+
+document.addEventListener('dragleave', function(e) {
+    var zone = e.target.closest('.drop-zone');
+    if (zone) {
+        zone.style.borderColor = '';
+        zone.style.background = '';
+    }
+});
+
+document.addEventListener('drop', function(e) {
+    var zone = e.target.closest('.drop-zone');
+    if (zone) {
+        e.preventDefault();
+        zone.style.borderColor = '';
+        zone.style.background = '';
+        var input = zone.querySelector('.question-image-input');
+        input.files = e.dataTransfer.files;
+        handleImageUpload(input);
+    }
+});
+
+async function handleImageUpload(input) {
+    var file = input.files[0];
+    if (!file) return;
+
+    var card = input.closest('.question-card');
+    var hiddenInput = card.querySelector('.question-image');
+    var preview = card.querySelector('.image-preview');
+    var img = preview.querySelector('img');
+    var dropZone = card.querySelector('.drop-zone');
+
+    var formData = new FormData();
+    formData.append('file', file);
+
+    dropZone.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Загрузка...';
+
+    try {
+        var response = await fetch('/upload', {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        });
+
+        if (!response.ok) throw new Error('Upload failed');
+
+        var result = await response.json();
+        hiddenInput.value = result.url;
+        img.src = result.url;
+        preview.classList.remove('d-none');
+        dropZone.classList.add('d-none');
+    } catch (err) {
+        dropZone.innerHTML = '<i class="bi bi-exclamation-triangle text-danger"></i> Ошибка загрузки';
+        console.error(err);
+    }
+}
+
+// Удаление изображения
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.remove-image');
+    if (btn) {
+        var card = btn.closest('.question-card');
+        card.querySelector('.question-image').value = '';
+        card.querySelector('.image-preview').classList.add('d-none');
+        card.querySelector('.drop-zone').classList.remove('d-none');
+        card.querySelector('.drop-zone').innerHTML =
+            '<i class="bi bi-image fs-3"></i><p class="mb-0 small">Перетащите файл сюда или кликните, чтобы выбрать</p>';
+        card.querySelector('.question-image-input').value = '';
+    }
+});
+
 // Сбор данных формы
 document.getElementById('quizForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -179,7 +275,6 @@ document.getElementById('quizForm').addEventListener('submit', async function(e)
         var number = parseInt(card.querySelector('.question-number').value);
         var text = card.querySelector('.question-text').value;
         var image_url = card.querySelector('.question-image').value;
-        var file_url = card.querySelector('.question-file').value;
         var task_type = card.querySelector('.task-type').value;
         
         var answerFields = card.querySelectorAll('.correct-answer');

@@ -99,6 +99,9 @@ function displayQuiz(quiz) {
         
         // Текст задания
         html += '<p class="card-text">' + q.text + '</p>';
+        if (q.image_url) {
+            html += '<img src="' + q.image_url + '" class="img-fluid rounded mb-2" style="max-height:300px" alt="Изображение к заданию">';
+        }
         
         // Картинка
         if (q.image_url) {
