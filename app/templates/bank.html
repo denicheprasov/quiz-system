@@ -174,7 +174,7 @@ function loadTasks(filters) {
                     '<span class="badge bg-success">✅ Проверено</span>' : 
                     '<span class="badge bg-warning text-dark">⏳ Не проверено</span>';
                 
-                html += '<tr>';
+                html += '<tr data-task-id="' + task.id + '">';
                 html += '<td>' + task.order_in_file + '</td>';
                 html += '<td>' + task.id + '</td>';
                 html += '<td>' + task.text.substring(0, 50) + '...</td>';
