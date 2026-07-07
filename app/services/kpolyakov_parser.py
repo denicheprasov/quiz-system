@@ -93,6 +93,7 @@ class KpolyakovParser:
 
         try:
             soup = BeautifulSoup(html, "html.parser")
+            rows = soup.find_all("tr")
             i = 0
             while i < len(rows):
                 row = rows[i]
