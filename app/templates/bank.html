@@ -235,7 +235,7 @@ function viewTask(taskId) {
         html += '<p><strong>Текст:</strong></p>';
         html += '<div class="p-2 bg-light">' + task.text.replace(/\n/g, '<br>') + '</div>';
         if (task.image_url) {
-            html += '<div class="mt-2"><img src="' + task.image_url + '" class="img-fluid rounded" style="max-height:300px"></div>';
+            html += '<div class="mt-2"><img src="' + task.image_url + '" class="img-fluid rounded question-image"></div>';
         }
         if (task.table_data) {
             html += '<p class="mt-3"><strong>Таблица:</strong></p>';

@@ -93,8 +93,8 @@ def import_tasks(
     if not current_user.is_teacher:
         raise HTTPException(status_code=403, detail="Only teachers can import tasks")
 
-    if not file.filename.endswith(".txt"):
-        raise HTTPException(status_code=400, detail="Only .txt files are supported")
+    if not file.filename.endswith(".txt") and not file.filename.endswith(".zip"):
+        raise HTTPException(status_code=400, detail="Only .txt and .zip files are supported")
 
     if task_number < 1 or task_number > 27:
         raise HTTPException(
@@ -122,7 +122,11 @@ def import_tasks(
             }
 
         import_service = ImportService()
-        result = import_service.import_from_txt(file_path, file.filename, task_number)
+
+        if file.filename.endswith(".zip"):
+            result = import_service.import_from_zip(file_path, file.filename, task_number)
+        else:
+            result = import_service.import_from_txt(file_path, file.filename, task_number)
 
         # Удаляем временный файл
         try:

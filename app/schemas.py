@@ -122,6 +122,7 @@ class TaskBankBase(BaseModel):
     source_file: Optional[str] = None
     order_in_file: Optional[int] = None
     text: str
+    image_url: Optional[str] = None
     table_data: Optional[str] = None
     question: Optional[str] = None
     correct_answer: str

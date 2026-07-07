@@ -89,6 +89,7 @@ class TaskBank(Base):
     order_in_file = Column(Integer, nullable=True)
     
     text = Column(Text, nullable=False)
+    image_url = Column(String(500), nullable=True)
     table_data = Column(Text, nullable=True)
     question = Column(Text, nullable=True)
     correct_answer = Column(String(50), nullable=False)
