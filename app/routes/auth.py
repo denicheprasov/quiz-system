@@ -2,11 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy.orm import Session
 from app import models, schemas, auth, database
 from datetime import timedelta
+import os
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/register", response_model=schemas.UserResponse)
-def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+IS_PRODUCTION = os.environ.get("RENDER", "") or os.environ.get("IS_PRODUCTION", "")
+
+@router.post("/register")
+def register(
+    user: schemas.UserCreate,
+    response: Response,
+    db: Session = Depends(database.get_db)
+):
     db_user = db.query(models.User).filter(
         (models.User.username == user.username) | (models.User.email == user.email)
     ).first()
@@ -27,6 +34,16 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     access_token = auth.create_access_token(
         data={"sub": user.username},
         expires_delta=timedelta(minutes=30)
+    )
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        samesite="lax",
+        secure=bool(IS_PRODUCTION),
+        max_age=1800,
+        path="/"
     )
 
     return {
@@ -58,7 +75,7 @@ def login(
         value=access_token,
         httponly=True,
         samesite="lax",
-        secure=True,
+        secure=bool(IS_PRODUCTION),
         max_age=1800,
         path="/"
     )
