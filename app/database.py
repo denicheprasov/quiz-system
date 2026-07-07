@@ -6,8 +6,13 @@ import os
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL and "postgres" in DATABASE_URL:
-    engine = create_engine(DATABASE_URL)
-else:
+    try:
+        engine = create_engine(DATABASE_URL)
+    except Exception:
+        print(f"Invalid DATABASE_URL, falling back to SQLite")
+        DATABASE_URL = None
+
+if not DATABASE_URL or "postgres" not in DATABASE_URL:
     DATA_DIR = os.environ.get(
         "DATA_DIR",
         os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
