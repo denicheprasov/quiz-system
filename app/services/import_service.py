@@ -6,9 +6,9 @@ from typing import List, Dict
 from app.database import SessionLocal
 from app.models import TaskBank
 
-UPLOAD_DIR = os.path.join(
+UPLOAD_DIR = os.path.normpath(os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "uploads"
-)
+))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
