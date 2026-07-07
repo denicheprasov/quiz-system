@@ -165,22 +165,22 @@ function loadTasks(filters) {
             html += '</h2>';
             html += '<div id="collapse' + num + '" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">';
             html += '<div class="accordion-body">';
-
+            
             html += '<div class="table-responsive"><table class="table table-striped table-sm">';
             html += '<thead><tr><th>#</th><th>ID</th><th>Текст</th><th>Ответ</th><th>Статус</th><th>Действия</th></tr></thead><tbody>';
-
+            
             tasksForNumber.forEach(function(task) {
-                var status = task.is_verified ?
-                    '<span class="badge bg-success">✅ Проверено</span>' :
+                var status = task.is_verified ? 
+                    '<span class="badge bg-success">✅ Проверено</span>' : 
                     '<span class="badge bg-warning text-dark">⏳ Не проверено</span>';
-
-                html += '<tr data-task-id="' + task.id + '" data-task-number="' + num + '">';
+                
+                html += '<tr>';
                 html += '<td>' + task.order_in_file + '</td>';
                 html += '<td>' + task.id + '</td>';
                 html += '<td>' + task.text.substring(0, 50) + '...</td>';
                 html += '<td><strong>' + task.correct_answer + '</strong></td>';
-                html += '<td class="status-cell">' + status + '</td>';
-                html += '<td class="action-cell">';
+                html += '<td>' + status + '</td>';
+                html += '<td>';
                 html += '<button class="btn btn-info btn-sm" onclick="viewTask(' + task.id + ')">👁️</button>';
                 if (!task.is_verified) {
                     html += '<button class="btn btn-success btn-sm" onclick="verifyTask(' + task.id + ')">✅</button>';
@@ -253,7 +253,7 @@ function viewTask(taskId) {
 
 function verifyTask(taskId) {
     if (!confirm('Отметить задание как проверенное?')) return;
-
+    
     fetch('/bank/tasks/' + taskId + '/verify', {
         method: 'POST',
         credentials: 'include'
@@ -262,13 +262,7 @@ function verifyTask(taskId) {
         return response.json();
     })
     .then(function() {
-        var row = document.querySelector('tr[data-task-id="' + taskId + '"]');
-        if (row) {
-            row.querySelector('.status-cell').innerHTML = '<span class="badge bg-success">✅ Проверено</span>';
-            var btn = row.querySelector('.action-cell .btn-success');
-            if (btn) btn.remove();
-            updateStats();
-        }
+        applyFilters();
     })
     .catch(function(error) {
         alert('Ошибка при подтверждении');
@@ -278,7 +272,7 @@ function verifyTask(taskId) {
 
 function deleteTask(taskId) {
     if (!confirm('Удалить задание?')) return;
-
+    
     fetch('/bank/tasks/' + taskId, {
         method: 'DELETE',
         credentials: 'include'
@@ -287,53 +281,11 @@ function deleteTask(taskId) {
         return response.json();
     })
     .then(function() {
-        var row = document.querySelector('tr[data-task-id="' + taskId + '"]');
-        if (row) {
-            var tbody = row.closest('tbody');
-            var accordionItem = row.closest('.accordion-item');
-            row.remove();
-            updateStats();
-
-            if (tbody && tbody.querySelectorAll('tr').length === 0 && accordionItem) {
-                accordionItem.remove();
-            }
-        }
+        applyFilters();
     })
     .catch(function(error) {
         alert('Ошибка при удалении');
         console.error('Error:', error);
-    });
-}
-
-function updateStats() {
-    var rows = document.querySelectorAll('#tasksAccordion tr[data-task-id]');
-    var total = rows.length;
-    var verified = 0;
-    var numbers = new Set();
-
-    rows.forEach(function(r) {
-        var num = r.getAttribute('data-task-number');
-        if (num) numbers.add(num);
-        if (r.querySelector('.badge.bg-success')) verified++;
-    });
-
-    document.getElementById('totalCount').textContent = total;
-    document.getElementById('verifiedCount').textContent = verified;
-    document.getElementById('unverifiedCount').textContent = total - verified;
-    document.getElementById('numberCount').textContent = numbers.size;
-
-    document.querySelectorAll('#tasksAccordion .accordion-item').forEach(function(item) {
-        var itemRows = item.querySelectorAll('tr[data-task-id]');
-        var totalInItem = itemRows.length;
-        var verifiedInItem = 0;
-        itemRows.forEach(function(r) {
-            if (r.querySelector('.badge.bg-success')) verifiedInItem++;
-        });
-        var btn = item.querySelector('.accordion-button');
-        var num = item.id ? item.id.replace('accordion-item-', '') : '';
-        if (btn) {
-            btn.textContent = 'Задание №' + num + ' (' + totalInItem + ' заданий, ' + verifiedInItem + ' проверено)';
-        }
     });
 }
 
