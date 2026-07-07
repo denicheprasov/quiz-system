@@ -9,13 +9,6 @@ class TaskType(str, Enum):
     EXTENDED = "extended"
 
 
-class AssignedTestStatus(str, Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    EXPIRED = "expired"
-
-
 # ===== User =====
 class UserBase(BaseModel):
     username: str
@@ -104,12 +97,6 @@ class AssignedTestResponse(AssignedTestBase):
 
 
 # ===== Result =====
-class ResultCreate(BaseModel):
-    quiz_id: int
-    assigned_test_id: Optional[int] = None
-    answers: Dict[str, List[str]]
-
-
 class ResultResponse(BaseModel):
     id: int
     user_id: int
@@ -127,11 +114,6 @@ class ResultResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-    user: UserResponse
-
-
-class TokenData(BaseModel):
-    username: Optional[str] = None
 
 
 # ===== BANK =====

@@ -1,6 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import random
@@ -9,83 +7,6 @@ from app import models, schemas, auth, database
 from app.auth import get_user_from_request
 
 router = APIRouter(prefix="/student", tags=["student"])
-templates = Jinja2Templates(directory="app/templates")
-
-
-# ===== СТРАНИЦЫ (HTML) =====
-
-
-@router.get("/dashboard", response_class=HTMLResponse)
-async def student_dashboard_page(
-    request: Request, db: Session = Depends(database.get_db)
-):
-    """Страница панели ученика"""
-    user = get_user_from_request(request, db)
-
-    if not user:
-        return RedirectResponse(url="/login")
-
-    return templates.TemplateResponse(
-        "student_dashboard.html", {"request": request, "user": user}
-    )
-
-
-@router.get("/bank", response_class=HTMLResponse)
-async def student_bank_page(request: Request, db: Session = Depends(database.get_db)):
-    """Страница банка заданий для ученика"""
-    user = get_user_from_request(request, db)
-
-    if not user:
-        return RedirectResponse(url="/login")
-
-    return templates.TemplateResponse(
-        "student_bank.html", {"request": request, "user": user}
-    )
-
-
-@router.get("/practice", response_class=HTMLResponse)
-async def student_practice_page(
-    request: Request, db: Session = Depends(database.get_db)
-):
-    """Страница тренировки"""
-    user = get_user_from_request(request, db)
-
-    if not user:
-        return RedirectResponse(url="/login")
-
-    return templates.TemplateResponse(
-        "practice.html", {"request": request, "user": user}
-    )
-
-
-@router.get("/generate", response_class=HTMLResponse)
-async def student_generate_page(
-    request: Request, db: Session = Depends(database.get_db)
-):
-    """Страница генерации варианта"""
-    user = get_user_from_request(request, db)
-
-    if not user:
-        return RedirectResponse(url="/login")
-
-    return templates.TemplateResponse(
-        "student_generate.html", {"request": request, "user": user}
-    )
-
-
-@router.get("/history", response_class=HTMLResponse)
-async def student_history_page(
-    request: Request, db: Session = Depends(database.get_db)
-):
-    """Страница истории"""
-    user = get_user_from_request(request, db)
-
-    if not user:
-        return RedirectResponse(url="/login")
-
-    return templates.TemplateResponse(
-        "student_history.html", {"request": request, "user": user}
-    )
 
 
 # ===== API ЭНДПОИНТЫ (JSON) =====

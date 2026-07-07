@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Генерация варианта{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">🎲 Сгенерировать вариант</h4>
+            </div>
+            <div class="card-body">
+                <form id="variantForm">
+                    <div class="mb-3">
+                        <label class="form-label">Название варианта</label>
+                        <input type="text" class="form-control" id="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" rows="2"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="shuffle" checked>
+                                <label class="form-check-label">Перемешивать задания</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="fillMissing" checked>
+                                <label class="form-check-label">Заполнять пропуски</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success mt-3 w-100">
+                        🎲 Сгенерировать вариант
+                    </button>
+                </form>
+
+                <div id="result" class="mt-4" style="display:none;">
+                    <hr>
+                    <h5>✅ Вариант сгенерирован</h5>
+                    <div id="variantInfo" class="mb-3"></div>
+                    <h6>Задания:</h6>
+                    <div id="taskList" class="list-group"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('variantForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const response = await fetch('/student/api/generate-variant', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            shuffle: document.getElementById('shuffle').checked,
+            fill_missing: document.getElementById('fillMissing').checked
+        })
+    });
+
+    if (!response.ok) {
+        alert('Ошибка генерации варианта');
+        return;
+    }
+
+    const result = await response.json();
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('variantInfo').innerHTML =
+        `<p><strong>Название:</strong> ${result.title}</p>` +
+        `<p><strong>Заданий:</strong> ${result.task_count || result.variant_tasks?.length || 0}</p>`;
+
+    const taskList = document.getElementById('taskList');
+    taskList.innerHTML = '';
+    (result.variant_tasks || []).forEach(task => {
+        taskList.innerHTML +=
+            `<div class="list-group-item">
+                <strong>Задание ${task.order_number}:</strong> ${task.task?.text?.substring(0, 100) || 'Нет текста'}...
+            </div>`;
+    });
+});
+</script>
+{% endblock %}

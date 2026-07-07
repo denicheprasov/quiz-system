@@ -95,8 +95,3 @@ else:
     @router.post("/login", response_model=schemas.Token)
     def login(request: Request, user_data: dict, response: Response, db: Session = Depends(database.get_db)):
         return login_route(request, user_data, response, db)
-
-@router.post("/logout")
-def logout(response: Response):
-    response.delete_cookie("access_token", path="/")
-    return {"detail": "Logged out"}

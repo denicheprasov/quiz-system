@@ -9,7 +9,6 @@ from app.database import engine, Base, get_db
 from app.routes import auth, quizzes, bank, variants, student
 from app.auth import get_current_user, get_user_from_request
 from sqlalchemy.orm import Session
-from app.models import User
 import os
 
 try:
@@ -47,8 +46,7 @@ app.include_router(student.router)
 
 
 @app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    db = next(get_db())
+async def home(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
     return templates.TemplateResponse("index.html", {"request": request, "user": user})
 
@@ -64,8 +62,7 @@ async def login_page(request: Request):
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_redirect(request: Request):
-    db = next(get_db())
+async def dashboard_redirect(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user:
@@ -81,8 +78,7 @@ async def dashboard_redirect(request: Request):
 
 
 @app.get("/teacher/dashboard", response_class=HTMLResponse)
-async def teacher_dashboard(request: Request):
-    db = next(get_db())
+async def teacher_dashboard(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user or not user.is_teacher:
@@ -94,8 +90,7 @@ async def teacher_dashboard(request: Request):
 
 
 @app.get("/admin", response_class=HTMLResponse)
-async def admin_panel(request: Request):
-    db = next(get_db())
+async def admin_panel(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user or not user.is_teacher:
@@ -105,8 +100,7 @@ async def admin_panel(request: Request):
 
 
 @app.get("/bank", response_class=HTMLResponse)
-async def bank_page(request: Request):
-    db = next(get_db())
+async def bank_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user or not user.is_teacher:
@@ -116,8 +110,7 @@ async def bank_page(request: Request):
 
 
 @app.get("/import", response_class=HTMLResponse)
-async def import_page(request: Request):
-    db = next(get_db())
+async def import_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user or not user.is_teacher:
@@ -127,8 +120,7 @@ async def import_page(request: Request):
 
 
 @app.get("/variant-builder", response_class=HTMLResponse)
-async def variant_builder_page(request: Request):
-    db = next(get_db())
+async def variant_builder_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user or not user.is_teacher:
@@ -140,8 +132,7 @@ async def variant_builder_page(request: Request):
 
 
 @app.get("/create-quiz", response_class=HTMLResponse)
-async def create_quiz_page(request: Request):
-    db = next(get_db())
+async def create_quiz_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user or not user.is_teacher:
@@ -156,8 +147,7 @@ async def create_quiz_page(request: Request):
 
 
 @app.get("/student/dashboard", response_class=HTMLResponse)
-async def student_dashboard_page(request: Request):
-    db = next(get_db())
+async def student_dashboard_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user:
@@ -169,8 +159,7 @@ async def student_dashboard_page(request: Request):
 
 
 @app.get("/student/bank", response_class=HTMLResponse)
-async def student_bank_page(request: Request):
-    db = next(get_db())
+async def student_bank_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user:
@@ -182,8 +171,7 @@ async def student_bank_page(request: Request):
 
 
 @app.get("/student/practice", response_class=HTMLResponse)
-async def student_practice_page(request: Request):
-    db = next(get_db())
+async def student_practice_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user:
@@ -195,8 +183,7 @@ async def student_practice_page(request: Request):
 
 
 @app.get("/student/generate", response_class=HTMLResponse)
-async def student_generate_page(request: Request):
-    db = next(get_db())
+async def student_generate_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user:
@@ -208,8 +195,7 @@ async def student_generate_page(request: Request):
 
 
 @app.get("/student/history", response_class=HTMLResponse)
-async def student_history_page(request: Request):
-    db = next(get_db())
+async def student_history_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user:
@@ -224,8 +210,7 @@ async def student_history_page(request: Request):
 
 
 @app.get("/take-quiz/{quiz_id}", response_class=HTMLResponse)
-async def take_quiz_page(request: Request, quiz_id: int):
-    db = next(get_db())
+async def take_quiz_page(request: Request, quiz_id: int, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
 
     if not user:
