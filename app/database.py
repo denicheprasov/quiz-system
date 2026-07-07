@@ -2,12 +2,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+import sys
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
+engine = None
 
-if DATABASE_URL and "postgres" in DATABASE_URL:
-    engine = create_engine(DATABASE_URL)
-else:
+if DATABASE_URL:
+    try:
+        engine = create_engine(DATABASE_URL)
+        print(f"Database: PostgreSQL ({DATABASE_URL[:25]}...)", flush=True)
+    except Exception as e:
+        print(f"DB init error: {e}. Falling back to SQLite.", flush=True)
+        engine = None
+
+if engine is None:
     DATA_DIR = os.environ.get(
         "DATA_DIR",
         os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
@@ -18,6 +26,7 @@ else:
     engine = create_engine(
         SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
     )
+    print(f"Database: SQLite ({DB_PATH})", flush=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
