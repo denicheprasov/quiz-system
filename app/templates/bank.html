@@ -15,6 +15,9 @@
                     <a href="/variant-builder" class="btn btn-light btn-sm">
                         <i class="bi bi-plus-circle"></i> Собрать вариант
                     </a>
+                    <button class="btn btn-outline-light btn-sm" onclick="deleteAllTasks()">
+                        <i class="bi bi-trash"></i> Очистить
+                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -302,6 +305,25 @@ function deleteTask(taskId) {
     })
     .catch(function(error) {
         alert('Ошибка при удалении');
+        console.error('Error:', error);
+    });
+}
+
+function deleteAllTasks() {
+    if (!confirm('Удалить ВСЕ задания из банка? Это действие нельзя отменить.')) return;
+    if (!confirm('Точно уверены? Все задания будут безвозвратно удалены.')) return;
+
+    fetch('/bank/tasks', {
+        method: 'DELETE',
+        credentials: 'include'
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        alert(data.message);
+        loadTasks();
+    })
+    .catch(function(error) {
+        alert('Ошибка при очистке');
         console.error('Error:', error);
     });
 }
