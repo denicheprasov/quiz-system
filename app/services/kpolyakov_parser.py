@@ -71,8 +71,6 @@ class KpolyakovParser:
     def parse_page(self, url: str, task_number: int, db_session=None) -> Dict:
         imported = []
         errors = []
-        html = self._fetch_html(url)
-        soup = BeautifulSoup(html, "html.parser")
 
         close_db = False
         if db_session is None:
@@ -80,7 +78,14 @@ class KpolyakovParser:
             close_db = True
 
         try:
-            rows = soup.find_all("tr")
+            html = self._fetch_html(url)
+        except Exception as e:
+            if close_db:
+                db_session.close()
+            return {"total": 0, "imported": 0, "skipped": 0, "errors": [f"Ошибка загрузки страницы: {str(e)}"], "tasks": []}
+
+        try:
+            soup = BeautifulSoup(html, "html.parser")
             i = 0
             while i < len(rows):
                 row = rows[i]
