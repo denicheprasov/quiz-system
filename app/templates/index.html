@@ -3,95 +3,6 @@
 {% block title %}Система тестирования ЕГЭ{% endblock %}
 
 {% block content %}
-<style>
-.hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 80px 0;
-    border-radius: 20px;
-    margin-top: -16px;
-    position: relative;
-    overflow: hidden;
-}
-.hero::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-    animation: pulse 6s ease-in-out infinite;
-}
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-.hero h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    position: relative;
-    z-index: 1;
-}
-.hero p {
-    font-size: 1.25rem;
-    opacity: 0.9;
-    position: relative;
-    z-index: 1;
-}
-.hero-buttons {
-    position: relative;
-    z-index: 1;
-}
-.feature-card {
-    border: none;
-    border-radius: 16px;
-    transition: transform 0.3s, box-shadow 0.3s;
-    background: var(--bs-card-bg);
-}
-.feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
-}
-.feature-icon {
-    font-size: 2.5rem;
-    width: 70px;
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 16px;
-    margin: 0 auto 16px;
-}
-.stat-card {
-    text-align: center;
-    padding: 24px;
-    border-radius: 16px;
-    background: var(--bs-card-bg);
-    border: none;
-}
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-.stat-label {
-    font-size: 0.9rem;
-    color: var(--bs-secondary-color);
-    margin-top: 4px;
-}
-.cta-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
-    padding: 60px 40px;
-    color: white;
-    text-align: center;
-}
-</style>
-
 <div class="hero text-center mb-5">
     <div class="container">
         <h1 class="mb-3">🎓 Подготовка к ЕГЭ по информатике</h1>
@@ -101,18 +12,12 @@
         </p>
         {% if not user %}
         <div class="hero-buttons">
-            <a href="/register" class="btn btn-light btn-lg px-4 me-2 rounded-pill fw-bold">
-                🚀 Начать
-            </a>
-            <a href="/login" class="btn btn-outline-light btn-lg px-4 rounded-pill">
-                Войти
-            </a>
+            <a href="/register" class="btn btn-light btn-lg px-4 me-2 rounded-pill fw-bold">🚀 Начать</a>
+            <a href="/login" class="btn btn-outline-light btn-lg px-4 rounded-pill">Войти</a>
         </div>
         {% else %}
         <div class="hero-buttons">
-            <a href="/dashboard" class="btn btn-light btn-lg px-5 rounded-pill fw-bold">
-                📊 Перейти в панель
-            </a>
+            <a href="/dashboard" class="btn btn-light btn-lg px-5 rounded-pill fw-bold">📊 Перейти в панель</a>
         </div>
         {% endif %}
     </div>
@@ -121,35 +26,23 @@
 <div class="row g-4 mb-5">
     <div class="col-md-4">
         <div class="feature-card card h-100 p-4 text-center">
-            <div class="feature-icon mx-auto" style="background: #e8f5e9;">
-                <span style="font-size:2rem">📚</span>
-            </div>
+            <div class="feature-icon mx-auto" style="background:#e8f5e9;"><span style="font-size:2rem">📚</span></div>
             <h5 class="fw-bold">Банк заданий</h5>
-            <p class="text-muted small mb-0">
-                Более 1000 актуальных заданий ЕГЭ по информатике с ответами и решениями
-            </p>
+            <p class="text-muted small mb-0">Более 1000 актуальных заданий ЕГЭ по информатике с ответами и решениями</p>
         </div>
     </div>
     <div class="col-md-4">
         <div class="feature-card card h-100 p-4 text-center">
-            <div class="feature-icon mx-auto" style="background: #e3f2fd;">
-                <span style="font-size:2rem">🎯</span>
-            </div>
+            <div class="feature-icon mx-auto" style="background:#e3f2fd;"><span style="font-size:2rem">🎯</span></div>
             <h5 class="fw-bold">Тренировки</h5>
-            <p class="text-muted small mb-0">
-                Выбирайте номера заданий и тренируйтесь в удобном темпе с мгновенной проверкой
-            </p>
+            <p class="text-muted small mb-0">Выбирайте номера заданий и тренируйтесь в удобном темпе с мгновенной проверкой</p>
         </div>
     </div>
     <div class="col-md-4">
         <div class="feature-card card h-100 p-4 text-center">
-            <div class="feature-icon mx-auto" style="background: #fce4ec;">
-                <span style="font-size:2rem">📊</span>
-            </div>
+            <div class="feature-icon mx-auto" style="background:#fce4ec;"><span style="font-size:2rem">📊</span></div>
             <h5 class="fw-bold">Статистика</h5>
-            <p class="text-muted small mb-0">
-                Отслеживайте прогресс, анализируйте ошибки и улучшайте результаты
-            </p>
+            <p class="text-muted small mb-0">Отслеживайте прогресс, анализируйте ошибки и улучшайте результаты</p>
         </div>
     </div>
 </div>
@@ -175,15 +68,13 @@
     </div>
 </div>
 
-<div class="cta-section mb-4">
+<div class="hero text-center mb-4" style="padding:60px 40px">
     <h2 class="fw-bold mb-3">Готовы начать подготовку?</h2>
     <p class="mb-4 opacity-75 mx-auto" style="max-width:500px">
         Присоединяйтесь к платформе и готовьтесь к ЕГЭ эффективно
     </p>
     {% if not user %}
-    <a href="/register" class="btn btn-light btn-lg px-5 rounded-pill fw-bold">
-        🚀 Создать аккаунт
-    </a>
+    <a href="/register" class="btn btn-light btn-lg px-5 rounded-pill fw-bold">🚀 Создать аккаунт</a>
     {% endif %}
 </div>
 {% endblock %}

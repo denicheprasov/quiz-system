@@ -7,13 +7,105 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        :root {
+            --card-radius: 16px;
+            --hero-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --stat-gradient: linear-gradient(135deg, #667eea, #764ba2);
+        }
         body { background: var(--bs-gray-100); }
         [data-bs-theme="dark"] body { background: var(--bs-gray-900); }
         .navbar-brand { font-weight: bold; }
-        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn-primary { border-radius: 10px; }
-        .dropdown-menu { border-radius: 10px; }
         .theme-icon { cursor: pointer; font-size: 1.2rem; }
+
+        .card {
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-header:first-child { border-radius: var(--card-radius) var(--card-radius) 0 0; }
+        .card-header.gradient {
+            background: var(--hero-gradient);
+            color: white;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 24px;
+            border-radius: var(--card-radius);
+            background: var(--bs-card-bg);
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--stat-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--bs-secondary-color);
+        }
+
+        .btn { border-radius: 10px; }
+        .btn-lg { border-radius: 14px; }
+
+        .hero {
+            background: var(--hero-gradient);
+            color: white;
+            padding: 80px 0;
+            border-radius: var(--card-radius);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: pulse 6s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .hero h1 { font-size: 3rem; font-weight: 800; position: relative; z-index: 1; }
+        .hero p { font-size: 1.25rem; opacity: 0.9; position: relative; z-index: 1; }
+        .hero-buttons { position: relative; z-index: 1; }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            width: 70px; height: 70px;
+            display: flex;
+            align-items: center; justify-content: center;
+            border-radius: 16px;
+            margin: 0 auto 16px;
+        }
+
+        .drop-zone {
+            cursor: pointer;
+            border: 2px dashed var(--bs-gray-400);
+            border-radius: var(--card-radius);
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: var(--bs-primary);
+            background: var(--bs-primary-bg-subtle);
+        }
+
+        .question-image { max-height: 300px; }
+
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -28,9 +120,7 @@
                     {% if user %}
                         {% if user.is_teacher %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="teacherDropdown" role="button" data-bs-toggle="dropdown">
-                                    👨‍🏫 Учитель
-                                </a>
+                                <a class="nav-link dropdown-toggle" href="#" id="teacherDropdown" role="button" data-bs-toggle="dropdown">👨‍🏫 Учитель</a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="/teacher/dashboard">📊 Панель учителя</a></li>
                                     <li><a class="dropdown-item" href="/admin">⚙️ Админ-панель</a></li>
@@ -43,9 +133,7 @@
                             </li>
                         {% else %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown">
-                                    👨‍🎓 Ученик
-                                </a>
+                                <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown">👨‍🎓 Ученик</a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="/student/dashboard">📊 Панель ученика</a></li>
                                     <li><a class="dropdown-item" href="/student/bank">📚 Банк заданий</a></li>
@@ -55,19 +143,11 @@
                                 </ul>
                             </li>
                         {% endif %}
-                        <li class="nav-item">
-                            <span class="nav-link">👋 {{ user.username }}</span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/logout">🚪 Выйти</a>
-                        </li>
+                        <li class="nav-item"><span class="nav-link">👋 {{ user.username }}</span></li>
+                        <li class="nav-item"><a class="nav-link" href="/logout">🚪 Выйти</a></li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/login">Вход</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/register">Регистрация</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" href="/login">Вход</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/register">Регистрация</a></li>
                     {% endif %}
                     <li class="nav-item">
                         <span class="nav-link theme-icon" id="themeToggle" title="Переключить тему">

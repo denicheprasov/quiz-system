@@ -6,7 +6,7 @@
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header gradient">
                 <h4 class="mb-0">✏️ Создать новый тест</h4>
             </div>
             <div class="card-body">
@@ -74,13 +74,13 @@ function getQuestionTemplate() {
                 </div>
                 <div class="mb-2">
                     <label class="form-label">Изображение (перетащите или нажмите для выбора)</label>
-                    <div class="drop-zone border rounded p-3 text-center text-muted" style="cursor:pointer; border-style:dashed !important;">
+                    <div class="drop-zone rounded p-3 text-center text-muted">
                         <i class="bi bi-image fs-3"></i>
                         <p class="mb-0 small">Перетащите файл сюда или кликните, чтобы выбрать</p>
                         <input type="file" class="d-none question-image-input" accept="image/*,.pdf">
                     </div>
                     <div class="image-preview mt-2 d-none">
-                        <img class="img-fluid rounded" style="max-height:200px">
+                        <img class="img-fluid rounded question-image">
                         <button type="button" class="btn btn-sm btn-outline-danger mt-1 remove-image">🗑 Удалить</button>
                     </div>
                     <input type="hidden" class="question-image">
