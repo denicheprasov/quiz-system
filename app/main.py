@@ -10,7 +10,10 @@ from app.models import User
 import os
 
 # Создаем таблицы в БД
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Failed to create tables: {e}")
 
 app = FastAPI(title="Quiz App", version="1.0.0")
 
