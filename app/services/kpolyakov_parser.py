@@ -14,6 +14,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 BASE_URL = "https://kpolyakov.spb.ru/school/ege"
 IMAGE_BASE_URL = "https://kpolyakov.spb.ru/cms/images"
+FILE_BASE_URL = "https://kpolyakov.spb.ru/cms/files"
 
 
 class KpolyakovParser:
@@ -85,7 +86,7 @@ class KpolyakovParser:
                     return href
                 if href.startswith("/"):
                     return f"https://kpolyakov.spb.ru{href}"
-                return f"{BASE_URL}/{href}"
+                return f"{FILE_BASE_URL}/{href}"
         return None
 
     def _extract_images(self, topic_td: Tag) -> List[str]:
