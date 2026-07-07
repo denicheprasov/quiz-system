@@ -56,7 +56,7 @@ class KpolyakovParser:
                     f.write(resp.read())
             return f"/uploads/{filename}"
         except Exception:
-            return None
+            return img_url
 
     def _extract_images(self, topic_td: Tag) -> List[str]:
         images = []
