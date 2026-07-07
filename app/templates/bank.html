@@ -107,11 +107,6 @@
 </div>
 
 <script>
-var token = localStorage.getItem('access_token');
-if (!token) {
-    window.location.href = '/login';
-}
-
 function loadTasks(filters) {
     var container = document.getElementById('tasksList');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
@@ -124,9 +119,7 @@ function loadTasks(filters) {
     }
     url += 'limit=1000';
     
-    fetch(url, {
-        headers: {'Authorization': 'Bearer ' + token}
-    })
+    fetch(url, {credentials: 'include'})
     .then(function(response) {
         return response.json();
     })
@@ -229,9 +222,7 @@ function viewTask(taskId) {
     var container = document.getElementById('viewContent');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
-    fetch('/bank/tasks/' + taskId, {
-        headers: {'Authorization': 'Bearer ' + token}
-    })
+    fetch('/bank/tasks/' + taskId, {credentials: 'include'})
     .then(function(response) {
         return response.json();
     })
@@ -262,7 +253,7 @@ function verifyTask(taskId) {
     
     fetch('/bank/tasks/' + taskId + '/verify', {
         method: 'POST',
-        headers: {'Authorization': 'Bearer ' + token}
+        credentials: 'include'
     })
     .then(function(response) {
         return response.json();
@@ -281,7 +272,7 @@ function deleteTask(taskId) {
     
     fetch('/bank/tasks/' + taskId, {
         method: 'DELETE',
-        headers: {'Authorization': 'Bearer ' + token}
+        credentials: 'include'
     })
     .then(function(response) {
         return response.json();

@@ -49,17 +49,12 @@
 
 <script>
 var quizId = window.location.pathname.split('/').pop();
-var token = localStorage.getItem('access_token');
-
-if (!token) {
-    window.location.href = '/login';
-}
 
 var quizData = null;
 
 function loadQuiz() {
     fetch('/quizzes/' + quizId, {
-        headers: {'Authorization': 'Bearer ' + token}
+        credentials: 'include'
     })
     .then(function(response) {
         if (!response.ok) {
@@ -193,9 +188,9 @@ document.getElementById('quizForm').addEventListener('submit', function(e) {
     fetch('/quizzes/' + quizId + '/submit', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + token
+            'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(data)
     })
     .then(function(response) {

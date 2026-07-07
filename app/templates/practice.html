@@ -91,11 +91,6 @@
 </div>
 
 <script>
-const token = localStorage.getItem('access_token');
-if (!token) {
-    window.location.href = '/login';
-}
-
 let sessionId = null;
 let currentTasks = [];
 let currentIndex = 0;
@@ -130,9 +125,9 @@ document.getElementById('startForm').addEventListener('submit', async function(e
         const response = await fetch('/student/practice/start', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
+                'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify(data)
         });
         
@@ -217,9 +212,9 @@ async function submitAnswer(taskId) {
         const response = await fetch(`/student/practice/${sessionId}/answer`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
+                'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({
                 task_id: taskId,
                 answer: answer

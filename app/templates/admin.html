@@ -139,17 +139,10 @@
 </div>
 
 <script>
-const token = localStorage.getItem('access_token');
-if (!token) {
-    window.location.href = '/login';
-}
-
 // Функция загрузки статистики
 function loadStats() {
     // Загружаем тесты
-    fetch('/quizzes/my', {
-        headers: {'Authorization': 'Bearer ' + token}
-    })
+    fetch('/quizzes/my', {credentials: 'include'})
     .then(function(response) {
         if (!response.ok) throw new Error('Ошибка загрузки тестов');
         return response.json();
@@ -163,9 +156,7 @@ function loadStats() {
     });
     
     // Загружаем учеников
-    fetch('/student/api/students', {
-        headers: {'Authorization': 'Bearer ' + token}
-    })
+    fetch('/student/api/students', {credentials: 'include'})
     .then(function(response) {
         if (!response.ok) throw new Error('Ошибка загрузки учеников');
         return response.json();
@@ -179,9 +170,7 @@ function loadStats() {
     });
     
     // Загружаем задания из банка
-    fetch('/bank/tasks', {
-        headers: {'Authorization': 'Bearer ' + token}
-    })
+    fetch('/bank/tasks', {credentials: 'include'})
     .then(function(response) {
         if (!response.ok) throw new Error('Ошибка загрузки банка');
         return response.json();
@@ -200,9 +189,7 @@ function loadQuizzes() {
     var container = document.getElementById('quizzesList');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
-    fetch('/quizzes/my', {
-        headers: {'Authorization': 'Bearer ' + token}
-    })
+    fetch('/quizzes/my', {credentials: 'include'})
     .then(function(response) {
         if (!response.ok) throw new Error('Ошибка загрузки тестов');
         return response.json();
@@ -247,9 +234,7 @@ function loadVariants() {
     var container = document.getElementById('variantsList');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
-    fetch('/variants/', {
-        headers: {'Authorization': 'Bearer ' + token}
-    })
+    fetch('/variants/', {credentials: 'include'})
     .then(function(response) {
         if (!response.ok) throw new Error('Ошибка загрузки вариантов');
         return response.json();
@@ -295,9 +280,7 @@ function loadStudents() {
     var container = document.getElementById('studentsList');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
-    fetch('/student/api/students', {
-        headers: {'Authorization': 'Bearer ' + token}
-    })
+    fetch('/student/api/students', {credentials: 'include'})
     .then(function(response) {
         if (!response.ok) throw new Error('Ошибка загрузки учеников');
         return response.json();
@@ -339,9 +322,7 @@ function viewResults(quizId) {
     var container = document.getElementById('resultsContent');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
-    fetch('/quizzes/' + quizId + '/results', {
-        headers: {'Authorization': 'Bearer ' + token}
-    })
+    fetch('/quizzes/' + quizId + '/results', {credentials: 'include'})
     .then(function(response) {
         if (!response.ok) throw new Error('Ошибка загрузки результатов');
         return response.json();
@@ -389,7 +370,7 @@ function deleteQuiz(quizId) {
     
     fetch('/quizzes/' + quizId, {
         method: 'DELETE',
-        headers: {'Authorization': 'Bearer ' + token}
+        credentials: 'include'
     })
     .then(function(response) {
         if (!response.ok) throw new Error('Ошибка удаления');
@@ -414,7 +395,7 @@ function deleteVariant(variantId) {
     
     fetch('/variants/' + variantId, {
         method: 'DELETE',
-        headers: {'Authorization': 'Bearer ' + token}
+        credentials: 'include'
     })
     .then(function(response) {
         if (!response.ok) throw new Error('Ошибка удаления');

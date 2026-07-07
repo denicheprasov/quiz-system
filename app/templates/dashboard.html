@@ -43,20 +43,11 @@
 
 <script>
 function loadQuizzes() {
-    var token = localStorage.getItem('access_token');
-    
-    if (!token) {
-        window.location.href = '/login';
-        return;
-    }
-    
     var container = document.getElementById('quizzesList');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
     fetch('/quizzes/', {
-        headers: {
-            'Authorization': 'Bearer ' + token
-        }
+        credentials: 'include'
     })
     .then(function(response) {
         if (!response.ok) {

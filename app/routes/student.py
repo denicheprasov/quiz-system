@@ -6,32 +6,10 @@ from typing import List, Optional
 import random
 from datetime import datetime
 from app import models, schemas, auth, database
-from app.auth import decode_token
+from app.auth import get_user_from_request
 
 router = APIRouter(prefix="/student", tags=["student"])
 templates = Jinja2Templates(directory="app/templates")
-
-
-# ===== ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ =====
-def get_user_from_request(request: Request, db: Session):
-    """Получить пользователя из токена в cookies"""
-    token = request.cookies.get("access_token")
-    if not token:
-        return None
-
-    try:
-        payload = decode_token(token)
-        if not payload:
-            return None
-
-        user = (
-            db.query(models.User)
-            .filter(models.User.username == payload.get("sub"))
-            .first()
-        )
-        return user
-    except:
-        return None
 
 
 # ===== СТРАНИЦЫ (HTML) =====

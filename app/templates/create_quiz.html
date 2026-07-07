@@ -170,12 +170,6 @@ document.addEventListener('change', function(e) {
 document.getElementById('quizForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    var token = localStorage.getItem('access_token');
-    if (!token) {
-        window.location.href = '/login';
-        return;
-    }
-    
     var questions = [];
     var questionCards = document.querySelectorAll('.question-card');
     
@@ -228,10 +222,8 @@ document.getElementById('quizForm').addEventListener('submit', async function(e)
     try {
         var response = await fetch('/quizzes/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + token
-            },
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'include',
             body: JSON.stringify(data)
         });
         

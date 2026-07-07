@@ -47,14 +47,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const result = await response.json();
         
         if (response.ok) {
-            // Сохраняем токен в localStorage
-            localStorage.setItem('access_token', result.access_token);
-            localStorage.setItem('user', JSON.stringify(result.user));
-            
-            // И также сохраняем в cookies для сервера
-            document.cookie = 'access_token=' + result.access_token + '; path=/';
-            
-            // Перенаправляем на dashboard
             window.location.href = '/dashboard';
         } else {
             document.getElementById('message').innerHTML = 

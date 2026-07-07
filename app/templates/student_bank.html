@@ -65,11 +65,6 @@
 </div>
 
 <script>
-const token = localStorage.getItem('access_token');
-if (!token) {
-    window.location.href = '/login';
-}
-
 function loadTasks() {
     const container = document.getElementById('tasksList');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
@@ -81,7 +76,7 @@ function loadTasks() {
     if (number) url += '&task_number=' + number;
     
     fetch(url, {
-        headers: {'Authorization': 'Bearer ' + token}
+        credentials: 'include'
     })
     .then(response => {
         if (!response.ok) {
@@ -162,7 +157,7 @@ function viewTask(taskId) {
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
     fetch('/student/api/bank/task/' + taskId, {
-        headers: {'Authorization': 'Bearer ' + token}
+        credentials: 'include'
     })
     .then(response => {
         if (!response.ok) {

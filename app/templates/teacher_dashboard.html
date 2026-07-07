@@ -81,24 +81,19 @@
 </div>
 
 <script>
-const token = localStorage.getItem('access_token');
-if (!token) {
-    window.location.href = '/login';
-}
-
 // Загрузка статистики
 async function loadStats() {
     try {
         // Получаем тесты учителя
         const quizzesResponse = await fetch('/quizzes/my', {
-            headers: {'Authorization': 'Bearer ' + token}
+            credentials: 'include'
         });
         const quizzes = await quizzesResponse.json();
         document.getElementById('totalQuizzes').textContent = quizzes.length;
         
         // Получаем задания из банка
         const bankResponse = await fetch('/bank/tasks', {
-            headers: {'Authorization': 'Bearer ' + token}
+            credentials: 'include'
         });
         const bankTasks = await bankResponse.json();
         document.getElementById('totalBankTasks').textContent = bankTasks.length;
@@ -115,7 +110,7 @@ async function loadQuizzes() {
     
     try {
         const response = await fetch('/quizzes/my', {
-            headers: {'Authorization': 'Bearer ' + token}
+            credentials: 'include'
         });
         const quizzes = await response.json();
         
