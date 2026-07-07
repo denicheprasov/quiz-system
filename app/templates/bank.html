@@ -313,10 +313,21 @@ function deleteTask(taskId) {
 }
 
 function deleteAllTasks() {
-    if (!confirm('Удалить ВСЕ задания из банка? Это действие нельзя отменить.')) return;
-    if (!confirm('Точно уверены? Все задания будут безвозвратно удалены.')) return;
+    var num = prompt('Введите номер задания для удаления (1-27)\nОставьте пустым, чтобы удалить все:');
+    if (num === null) return;
 
-    fetch('/bank/tasks', {
+    var url = '/bank/tasks';
+    if (num.trim() !== '') {
+        var n = parseInt(num);
+        if (n < 1 || n > 27 || isNaN(n)) { alert('Номер должен быть от 1 до 27'); return; }
+        if (!confirm('Удалить все задания №' + n + '?')) return;
+        url += '?task_number=' + n;
+    } else {
+        if (!confirm('Удалить ВСЕ задания из банка? Это действие нельзя отменить.')) return;
+        if (!confirm('Точно уверены?')) return;
+    }
+
+    fetch(url, {
         method: 'DELETE',
         credentials: 'include'
     })
