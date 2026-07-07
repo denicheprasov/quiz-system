@@ -8,7 +8,7 @@ from app.database import SessionLocal
 from app.models import TaskBank
 
 UPLOAD_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads"
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "uploads"
 )
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
