@@ -114,11 +114,13 @@ class KpolyakovParser:
 
                 task_id = None
                 answer = "0"
+                has_answer = False
 
                 if i + 1 < len(rows):
                     next_row = rows[i + 1]
                     answer_td = next_row.find("td", class_="answer")
                     if answer_td:
+                        has_answer = True
                         answer_link = answer_td.find("a", {"onclick": re.compile(r"showDiv\('(\d+)'\)")})
                         if answer_link:
                             onclick = answer_link.get("onclick", "")
@@ -132,7 +134,7 @@ class KpolyakovParser:
                                 if ans_match:
                                     answer = ans_match.group(1).strip()
 
-                if not task_text:
+                if not task_text or not has_answer:
                     i += 1
                     continue
 
@@ -146,7 +148,7 @@ class KpolyakovParser:
 
                     if existing:
                         errors.append(f"Задание #{task_id} уже существует, пропущено")
-                        i += 1
+                        i += 2
                         continue
 
                     task = TaskBank(
@@ -164,12 +166,12 @@ class KpolyakovParser:
                     db_session.commit()
                     db_session.refresh(task)
                     imported.append(task)
+                    i += 2
 
                 except Exception as e:
                     errors.append(f"Ошибка сохранения #{task_id or '?'}: {str(e)}")
                     db_session.rollback()
-
-                i += 1
+                    i += 2
 
             db_session.commit()
             return {
