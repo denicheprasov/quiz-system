@@ -7,8 +7,9 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
-      # Укажи DATABASE_URL в Dashboard → Environment Variables
-      # postgresql://postgres:password@db.xxxx.supabase.co:5432/postgres
+      # SUPABASE_URL = postgresql://postgres:password@db.xxxx.supabase.co:5432/postgres
+      # ⚠️ Не DATABASE_URL — Render автоматически перезаписывает её своим PostgreSQL
+      # Укажи SUPABASE_URL в Dashboard → Environment Variables
       - key: ALLOWED_ORIGINS
         value: https://quiz-system-ps4o.onrender.com
       - key: SECRET_KEY

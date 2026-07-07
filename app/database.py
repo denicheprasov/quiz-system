@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 import sys
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get("SUPABASE_URL") or os.environ.get("DATABASE_URL")
 engine = None
 
 if DATABASE_URL:
