@@ -1,22 +1,12 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL") or os.environ.get("DATABASE_URL")
-USING_POSTGRES = False
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if SUPABASE_URL:
-    try:
-        engine = create_engine(SUPABASE_URL)
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        USING_POSTGRES = True
-        print("DB: Supabase PostgreSQL (connected)", flush=True)
-    except Exception as e:
-        print(f"DB: PostgreSQL unavailable ({e}), falling back to SQLite", flush=True)
-
-if not USING_POSTGRES:
+if not DATABASE_URL:
+    print("DATABASE_URL not set, using SQLite for local development", flush=True)
     DATA_DIR = os.environ.get(
         "DATA_DIR",
         os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
@@ -26,7 +16,9 @@ if not USING_POSTGRES:
     engine = create_engine(
         f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False}
     )
-    print(f"DB: SQLite ({DB_PATH})", flush=True)
+else:
+    engine = create_engine(DATABASE_URL)
+    print("DB: PostgreSQL", flush=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
