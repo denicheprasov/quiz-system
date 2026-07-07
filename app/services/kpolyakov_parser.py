@@ -138,6 +138,8 @@ class KpolyakovParser:
                     i += 1
                     continue
 
+                answer_type = "int" if answer.isdigit() else "string"
+
                 try:
                     existing = None
                     if task_id:
@@ -153,11 +155,12 @@ class KpolyakovParser:
 
                     task = TaskBank(
                         task_number=task_number,
+                        order_in_file=len(imported) + 1,
                         source_file=f"kpolyakov_{task_id}.html" if task_id else f"kpolyakov_{uuid.uuid4().hex}.html",
                         text=task_text,
                         image_url=images[0] if images else None,
                         correct_answer=answer,
-                        answer_type="int",
+                        answer_type=answer_type,
                         answer_count=1,
                         points=1,
                         is_verified=False,
