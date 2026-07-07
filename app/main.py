@@ -257,6 +257,17 @@ async def health():
     return {"status": "ok"}
 
 
+@app.get("/debug/uploads")
+async def debug_uploads():
+    import os
+    files = []
+    if os.path.exists(UPLOAD_DIR):
+        for f in os.listdir(UPLOAD_DIR):
+            fp = os.path.join(UPLOAD_DIR, f)
+            files.append({"name": f, "size": os.path.getsize(fp), "url": f"/uploads/{f}"})
+    return {"dir": UPLOAD_DIR, "exists": os.path.exists(UPLOAD_DIR), "files": files[:20]}
+
+
 @app.get("/api/v1/info")
 async def info():
     return {
