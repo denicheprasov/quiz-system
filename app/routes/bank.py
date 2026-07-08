@@ -228,6 +228,32 @@ def delete_task(
     return {"message": "Task deleted successfully"}
 
 
+@router.put("/tasks/{task_id}")
+def update_task(
+    task_id: int,
+    data: dict,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403, detail="Only teachers can edit tasks")
+
+    task = db.query(models.TaskBank).filter(models.TaskBank.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if "text" in data:
+        task.text = data["text"]
+    if "correct_answer" in data:
+        task.correct_answer = str(data["correct_answer"])
+    if "image_url" in data:
+        task.image_url = data["image_url"]
+
+    db.commit()
+    db.refresh(task)
+    return task
+
+
 @router.delete("/tasks")
 def delete_all_tasks(
     task_number: Optional[int] = None,
