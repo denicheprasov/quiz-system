@@ -56,8 +56,12 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         });
         const result = await response.json();
         if (response.ok) {
-            document.getElementById('message').innerHTML = 
-                '<div class="alert alert-success">✅ Регистрация успешна! <a href="/login">Войти</a></div>';
+            const next = new URLSearchParams(window.location.search).get('next');
+            if (next) {
+                window.location.href = '/login?next=' + encodeURIComponent(next);
+            } else {
+                window.location.href = '/login';
+            }
         } else {
             document.getElementById('message').innerHTML = 
                 `<div class="alert alert-danger">❌ ${result.detail}</div>`;
