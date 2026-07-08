@@ -297,6 +297,24 @@ async def upload_file(file: UploadFile = File(...)):
     return {"url": f"/uploads/{filename}", "filename": filename}
 
 
+@app.post("/admin/promote")
+def promote_to_teacher(
+    username: str = Form(...),
+    secret: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    if secret != "promote2024":
+        raise HTTPException(status_code=403)
+
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404)
+
+    user.is_teacher = True
+    db.commit()
+    return {"message": f"User '{username}' is now a teacher"}
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
