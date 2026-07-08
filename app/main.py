@@ -278,6 +278,18 @@ async def debug_uploads():
     return {"dir": UPLOAD_DIR, "exists": os.path.exists(UPLOAD_DIR), "files": files[:20]}
 
 
+@app.get("/debug/db")
+async def debug_db():
+    from sqlalchemy import inspect as sa_inspect
+    insp = sa_inspect(engine)
+    tables = insp.get_table_names()
+    columns = {}
+    for t in tables:
+        cols = [c["name"] for c in insp.get_columns(t)]
+        columns[t] = cols
+    return {"tables": tables, "columns": columns}
+
+
 @app.get("/api/v1/info")
 async def info():
     return {
