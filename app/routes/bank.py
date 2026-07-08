@@ -188,28 +188,6 @@ def get_task(
     return task
 
 
-@router.put("/tasks/{task_id}", response_model=schemas.TaskBankResponse)
-def update_task(
-    task_id: int,
-    task_data: schemas.TaskBankCreate,
-    db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_user),
-):
-    if not current_user.is_teacher:
-        raise HTTPException(status_code=403, detail="Only teachers can update tasks")
-
-    task = db.query(models.TaskBank).filter(models.TaskBank.id == task_id).first()
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    for key, value in task_data.dict().items():
-        setattr(task, key, value)
-
-    db.commit()
-    db.refresh(task)
-    return task
-
-
 @router.delete("/tasks/{task_id}")
 def delete_task(
     task_id: int,
