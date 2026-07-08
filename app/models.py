@@ -10,6 +10,9 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    last_name = Column(String(100), nullable=True)
+    first_name = Column(String(100), nullable=True)
+    patronymic = Column(String(100), nullable=True)
     is_teacher = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     

@@ -71,7 +71,7 @@ async function loadMembers(groupId) {
     if (!r.ok) return;
     const members = await r.json();
     if (members.length === 0) return;
-    container.innerHTML = '<small><strong>Участники:</strong> ' + members.map(function(m) { return m.username; }).join(', ') + '</small>';
+    container.innerHTML = '<small><strong>Участники:</strong> ' + members.map(function(m) { return m.display_name || m.username; }).join(', ') + '</small>';
 }
 
 async function createGroup(e) {

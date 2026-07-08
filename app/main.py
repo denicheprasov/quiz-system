@@ -14,6 +14,14 @@ import os
 
 from sqlalchemy import text
 
+for col in ["last_name", "first_name", "patronymic"]:
+    try:
+        with engine.connect() as conn:
+            conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} VARCHAR(100)"))
+            conn.commit()
+    except Exception:
+        pass
+
 try:
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE task_bank ADD COLUMN file_url VARCHAR(500)"))
@@ -31,6 +39,9 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 templates = Jinja2Templates(directory="app/templates")
+templates.env.globals["display_name"] = lambda u: (
+    " ".join(p for p in [u.last_name or "", u.first_name or "", u.patronymic or ""] if p).strip() or u.username
+)
 
 ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS",

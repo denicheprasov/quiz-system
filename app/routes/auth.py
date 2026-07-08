@@ -29,6 +29,9 @@ def register(
             username=user_data.username,
             email=user_data.email,
             hashed_password=hashed_password,
+            last_name=user_data.last_name,
+            first_name=user_data.first_name,
+            patronymic=user_data.patronymic,
             is_teacher=user_data.is_teacher
         )
         db.add(db_user)
@@ -56,6 +59,9 @@ def register(
                 "id": db_user.id,
                 "username": db_user.username,
                 "email": db_user.email,
+                "last_name": db_user.last_name,
+                "first_name": db_user.first_name,
+                "patronymic": db_user.patronymic,
                 "is_teacher": db_user.is_teacher,
             }
         }
@@ -95,6 +101,9 @@ def login_route(request: Request, user_data: dict, response: Response, db: Sessi
             "id": user.id,
             "username": user.username,
             "email": user.email,
+            "last_name": user.last_name,
+            "first_name": user.first_name,
+            "patronymic": user.patronymic,
             "is_teacher": user.is_teacher,
         }
     }

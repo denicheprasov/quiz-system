@@ -115,6 +115,7 @@ def get_members(
         {
             "id": m.student.id,
             "username": m.student.username,
+            "display_name": auth.get_display_name(m.student),
             "joined_at": m.joined_at.isoformat(),
         }
         for m in group.members

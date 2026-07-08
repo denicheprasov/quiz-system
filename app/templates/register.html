@@ -11,8 +11,22 @@
             </div>
             <div class="card-body">
                 <form id="registerForm">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Фамилия</label>
+                            <input type="text" class="form-control" id="lastName">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Имя</label>
+                            <input type="text" class="form-control" id="firstName" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Отчество</label>
+                            <input type="text" class="form-control" id="patronymic">
+                        </div>
+                    </div>
                     <div class="mb-3">
-                        <label class="form-label">Имя пользователя</label>
+                        <label class="form-label">Логин</label>
                         <input type="text" class="form-control" id="username" required>
                     </div>
                     <div class="mb-3">
@@ -43,6 +57,9 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     e.preventDefault();
     const data = {
         username: document.getElementById('username').value,
+        last_name: document.getElementById('lastName').value,
+        first_name: document.getElementById('firstName').value,
+        patronymic: document.getElementById('patronymic').value,
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
         is_teacher: document.getElementById('isTeacher').checked
