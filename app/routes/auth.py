@@ -17,48 +17,53 @@ def register(
     response: Response,
     db: Session = Depends(database.get_db)
 ):
-    db_user = db.query(models.User).filter(
-        (models.User.username == user.username) | (models.User.email == user.email)
-    ).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username or email already registered")
+    try:
+        db_user = db.query(models.User).filter(
+            (models.User.username == user.username) | (models.User.email == user.email)
+        ).first()
+        if db_user:
+            raise HTTPException(status_code=400, detail="Username or email already registered")
 
-    hashed_password = auth.get_password_hash(user.password)
-    db_user = models.User(
-        username=user.username,
-        email=user.email,
-        hashed_password=hashed_password,
-        is_teacher=user.is_teacher
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+        hashed_password = auth.get_password_hash(user.password)
+        db_user = models.User(
+            username=user.username,
+            email=user.email,
+            hashed_password=hashed_password,
+            is_teacher=user.is_teacher
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
 
-    access_token = auth.create_access_token(
-        data={"sub": user.username},
-        expires_delta=timedelta(minutes=30)
-    )
+        access_token = auth.create_access_token(
+            data={"sub": user.username},
+            expires_delta=timedelta(minutes=30)
+        )
 
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        samesite="lax",
-        secure=bool(IS_PRODUCTION),
-        max_age=1800,
-        path="/"
-    )
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            samesite="lax",
+            secure=bool(IS_PRODUCTION),
+            max_age=1800,
+            path="/"
+        )
 
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": {
-            "id": db_user.id,
-            "username": db_user.username,
-            "email": db_user.email,
-            "is_teacher": db_user.is_teacher,
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": {
+                "id": db_user.id,
+                "username": db_user.username,
+                "email": db_user.email,
+                "is_teacher": db_user.is_teacher,
+            }
         }
-    }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 def login_route(request: Request, user_data: dict, response: Response, db: Session):
