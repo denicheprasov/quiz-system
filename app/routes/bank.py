@@ -16,7 +16,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @router.get("/tasks", response_model=List[schemas.TaskBankResponse])
 def get_tasks(
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 9999,
     task_number: Optional[int] = None,
     source_file: Optional[str] = None,
     is_verified: Optional[bool] = None,
