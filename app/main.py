@@ -7,7 +7,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
 from app.database import engine, Base, get_db
-from app.routes import auth, quizzes, bank, variants, student
+from app.routes import auth, quizzes, bank, variants, student, groups
 from app.auth import get_current_user, get_user_from_request
 from sqlalchemy.orm import Session
 import os
@@ -50,6 +50,7 @@ app.include_router(quizzes.router)
 app.include_router(bank.router)
 app.include_router(variants.router)
 app.include_router(student.router)
+app.include_router(groups.router)
 
 UPLOAD_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads"))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
