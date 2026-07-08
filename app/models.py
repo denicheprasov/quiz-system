@@ -27,7 +27,7 @@ class User(Base):
         back_populates="assigned_by_user",
         foreign_keys="AssignedTest.assigned_by"
     )
-    practice_sessions = relationship("PracticeSession", back_populates="practice_user")
+    practice_sessions = relationship("PracticeSession", back_populates="practice_user", foreign_keys="PracticeSession.user_id")
 
 class Quiz(Base):
     __tablename__ = "quizzes"
@@ -171,8 +171,11 @@ class PracticeSession(Base):
     started_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
 
-    practice_user = relationship("User", back_populates="practice_sessions")
+    practice_user = relationship("User", back_populates="practice_sessions", foreign_keys=[user_id])
     practice_tasks = relationship("PracticeTask", back_populates="session")
+
+
+class StudentGroup(Base):
     __tablename__ = "student_groups"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
