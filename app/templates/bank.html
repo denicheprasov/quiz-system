@@ -109,6 +109,36 @@
     </div>
 </div>
 
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">✏️ Редактировать задание</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editTaskId">
+                <div class="mb-3">
+                    <label class="form-label">Текст задания</label>
+                    <textarea class="form-control" id="editText" rows="8"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Правильный ответ</label>
+                    <input type="text" class="form-control" id="editAnswer">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">URL изображения</label>
+                    <input type="text" class="form-control" id="editImageUrl">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" onclick="saveEdit()">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function loadTasks(filters) {
     var container = document.getElementById('tasksList');
@@ -185,6 +215,7 @@ function loadTasks(filters) {
                 html += '<td class="status-cell">' + status + '</td>';
                 html += '<td class="action-cell">';
                 html += '<button class="btn btn-info btn-sm" onclick="viewTask(' + task.id + ')">👁️</button>';
+                html += '<button class="btn btn-warning btn-sm" onclick="editTask(' + task.id + ')">✏️</button>';
                 if (!task.is_verified) {
                     html += '<button class="btn btn-success btn-sm" onclick="verifyTask(' + task.id + ')">✅</button>';
                 }
@@ -310,6 +341,41 @@ function deleteTask(taskId) {
         alert('Ошибка при удалении');
         console.error('Error:', error);
     });
+}
+
+function editTask(taskId) {
+    fetch('/bank/tasks/' + taskId, {credentials: 'include'})
+    .then(function(r) { return r.json(); })
+    .then(function(task) {
+        document.getElementById('editTaskId').value = task.id;
+        document.getElementById('editText').value = task.text;
+        document.getElementById('editAnswer').value = task.correct_answer || '';
+        document.getElementById('editImageUrl').value = task.image_url || '';
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    })
+    .catch(function() { alert('Ошибка загрузки задания'); });
+}
+
+function saveEdit() {
+    var id = document.getElementById('editTaskId').value;
+    var data = {
+        text: document.getElementById('editText').value,
+        correct_answer: document.getElementById('editAnswer').value,
+        image_url: document.getElementById('editImageUrl').value
+    };
+
+    fetch('/bank/tasks/' + id, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function() {
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        loadTasks();
+    })
+    .catch(function() { alert('Ошибка сохранения'); });
 }
 
 function deleteAllTasks() {
