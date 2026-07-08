@@ -144,13 +144,12 @@ function loadTasks(filters) {
     var container = document.getElementById('tasksList');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
-    var url = '/bank/tasks?';
+    var url = '/bank/tasks?limit=9999';
     if (filters) {
-        if (filters.task_number) url += 'task_number=' + filters.task_number + '&';
-        if (filters.is_verified === true) url += 'is_verified=true&';
-        if (filters.is_verified === false) url += 'is_verified=false&';
+        if (filters.task_number) url += '&task_number=' + filters.task_number;
+        if (filters.is_verified === true) url += '&is_verified=true';
+        if (filters.is_verified === false) url += '&is_verified=false';
     }
-    url += 'limit=1000';
     
     fetch(url, {credentials: 'include'})
     .then(function(response) {
