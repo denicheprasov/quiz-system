@@ -52,7 +52,12 @@ def register(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": db_user
+        "user": {
+            "id": db_user.id,
+            "username": db_user.username,
+            "email": db_user.email,
+            "is_teacher": db_user.is_teacher,
+        }
     }
 
 
@@ -82,7 +87,12 @@ def login_route(request: Request, user_data: dict, response: Response, db: Sessi
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": user
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "is_teacher": user.is_teacher,
+        }
     }
 
 
