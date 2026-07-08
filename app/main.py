@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 import os
 
 from sqlalchemy import text
+from sqlalchemy.orm import configure_mappers
 
 try:
     with engine.connect() as conn:
@@ -20,6 +21,11 @@ try:
         conn.commit()
 except Exception:
     pass
+
+try:
+    configure_mappers()
+except Exception as e:
+    print(f"Mapper config error: {e}", flush=True)
 
 try:
     Base.metadata.create_all(bind=engine)
