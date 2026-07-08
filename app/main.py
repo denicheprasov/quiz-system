@@ -72,8 +72,8 @@ async def register_page(request: Request):
 
 
 @app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+async def login_page(request: Request, next: str = ""):
+    return templates.TemplateResponse("login.html", {"request": request, "next": next})
 
 
 @app.get("/dashboard", response_class=HTMLResponse)

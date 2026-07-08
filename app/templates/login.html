@@ -47,7 +47,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const result = await response.json();
         
         if (response.ok) {
-            window.location.href = '/dashboard';
+            const params = new URLSearchParams(window.location.search);
+            window.location.href = params.get('next') || '/dashboard';
         } else {
             document.getElementById('message').innerHTML = 
                 '<div class="alert alert-danger">❌ ' + (result.detail || 'Ошибка входа') + '</div>';
