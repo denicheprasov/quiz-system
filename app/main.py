@@ -9,6 +9,7 @@ from app.limiter import limiter
 from app.database import engine, Base, get_db
 from app.routes import auth, quizzes, bank, variants, student, groups
 from app.auth import get_current_user, get_user_from_request
+from app import models
 from sqlalchemy.orm import Session
 import os
 
@@ -85,6 +86,30 @@ async def register_page(request: Request):
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, next: str = ""):
     return templates.TemplateResponse("login.html", {"request": request, "next": next})
+
+
+@app.get("/profile", response_class=HTMLResponse)
+async def profile_page(request: Request, db: Session = Depends(get_db)):
+    user = get_user_from_request(request, db)
+    if not user:
+        return RedirectResponse(url="/login")
+    return templates.TemplateResponse("profile.html", {"request": request, "user": user})
+
+
+@app.post("/profile/update")
+def update_profile(
+    last_name: str = "", first_name: str = "", patronymic: str = "",
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if last_name:
+        current_user.last_name = last_name
+    if first_name:
+        current_user.first_name = first_name
+    if patronymic:
+        current_user.patronymic = patronymic
+    db.commit()
+    return {"message": "Profile updated"}
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
