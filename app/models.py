@@ -170,9 +170,33 @@ class PracticeSession(Base):
     correct_answers = Column(Integer, default=0)
     started_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
-    
-    user = relationship("User", back_populates="practice_sessions")
-    practice_tasks = relationship("PracticeTask", back_populates="session", cascade="all, delete-orphan")
+    started_at = Column(DateTime, default=datetime.utcnow)
+
+
+class StudentGroup(Base):
+    __tablename__ = "student_groups"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String(200), nullable=False)
+    invite_code = Column(String(20), unique=True, nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    creator = relationship("User", backref="created_groups")
+    members = relationship("GroupMember", back_populates="group", cascade="all, delete-orphan")
+
+
+class GroupMember(Base):
+    __tablename__ = "group_members"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    group_id = Column(Integer, ForeignKey("student_groups.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    joined_at = Column(DateTime, default=datetime.utcnow)
+
+    group = relationship("StudentGroup", back_populates="members")
+    student = relationship("User", backref="memberships")
+
 
 class PracticeTask(Base):
     __tablename__ = "practice_tasks"

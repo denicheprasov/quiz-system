@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Группы учеников{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header gradient d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">👥 Группы учеников</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <form onsubmit="createGroup(event)" class="row g-2">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="groupName" placeholder="Название группы, например: 11А класс" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-success w-100"><i class="bi bi-plus-lg"></i> Создать группу</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="groupList">
+                    <div class="text-center text-muted py-4">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadGroups() {
+    const container = document.getElementById('groupList');
+    container.innerHTML = '<div class="text-center text-muted py-4">⏳ Загрузка...</div>';
+
+    const r = await fetch('/groups/api/list', {credentials: 'include'});
+    if (!r.ok) { container.innerHTML = '<div class="alert alert-danger">Ошибка загрузки</div>'; return; }
+
+    const groups = await r.json();
+    if (groups.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">📭 Групп пока нет. Создайте первую!</div>';
+        return;
+    }
+
+    let html = '<div class="list-group">';
+    for (const g of groups) {
+        const link = window.location.origin + '/groups/join/' + g.invite_code;
+        html += '<div class="list-group-item">';
+        html += '<div class="d-flex justify-content-between align-items-center">';
+        html += '<div><strong>' + g.name + '</strong><br><small class="text-muted">Участников: ' + g.member_count + '</small></div>';
+        html += '<div class="text-end">';
+        html += '<button class="btn btn-sm btn-outline-info me-1" onclick="copyLink(\'' + link + '\')">📋 Ссылка</button>';
+        html += '<button class="btn btn-sm btn-outline-danger" onclick="deleteGroup(' + g.id + ')">🗑</button>';
+        html += '</div></div>';
+        html += '<div class="mt-2"><small class="text-muted">Ссылка: <code>' + link + '</code></small></div>';
+        html += '<div id="members-' + g.id + '" class="mt-1"></div>';
+        html += '</div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+
+    for (const g of groups) {
+        loadMembers(g.id);
+    }
+}
+
+async function loadMembers(groupId) {
+    const container = document.getElementById('members-' + groupId);
+    const r = await fetch('/groups/' + groupId + '/members', {credentials: 'include'});
+    if (!r.ok) return;
+    const members = await r.json();
+    if (members.length === 0) return;
+    container.innerHTML = '<small><strong>Участники:</strong> ' + members.map(function(m) { return m.username; }).join(', ') + '</small>';
+}
+
+async function createGroup(e) {
+    e.preventDefault();
+    const name = document.getElementById('groupName').value;
+    if (!name) return;
+
+    const r = await fetch('/groups', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'name=' + encodeURIComponent(name)
+    });
+    if (r.ok) {
+        document.getElementById('groupName').value = '';
+        loadGroups();
+    } else {
+        alert('Ошибка создания группы');
+    }
+}
+
+async function deleteGroup(id) {
+    if (!confirm('Удалить группу?')) return;
+    const r = await fetch('/groups/' + id, {method: 'DELETE', credentials: 'include'});
+    if (r.ok) loadGroups();
+}
+
+function copyLink(link) {
+    navigator.clipboard.writeText(link).then(function() {
+        alert('Ссылка скопирована!');
+    });
+}
+
+loadGroups();
+</script>
+{% endblock %}

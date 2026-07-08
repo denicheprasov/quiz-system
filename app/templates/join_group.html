@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Вступить в группу{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header gradient">
+                <h4 class="mb-0">👥 Вступить в группу</h4>
+            </div>
+            <div class="card-body">
+                {% if invite_code %}
+                    {% if group_name %}
+                        <div class="alert alert-success">
+                            <strong>Группа:</strong> {{ group_name }}
+                        </div>
+                        {% if user %}
+                            <button class="btn btn-success w-100" onclick="joinGroup('{{ invite_code }}')">
+                                📋 Вступить в группу
+                            </button>
+                        {% else %}
+                            <a href="/login?next=/groups/join/{{ invite_code }}" class="btn btn-primary w-100">
+                                Войти и вступить
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-danger">Группа с таким кодом не найдена</div>
+                    {% endif %}
+                {% else %}
+                    <form onsubmit="joinByCode(event)" class="mb-3">
+                        <div class="mb-3">
+                            <label class="form-label">Введите код приглашения</label>
+                            <input type="text" class="form-control" id="inviteCode" placeholder="Например: A1B2C3D4" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Вступить</button>
+                    </form>
+                {% endif %}
+
+                <div id="result" class="d-none mt-3"></div>
+
+                {% if user and not user.is_teacher %}
+                <hr>
+                <h6>Мои группы</h6>
+                <div id="myGroups"><div class="text-muted small">Загрузка...</div></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+{% if user %}
+async function joinGroup(code) {
+    const r = await fetch('/groups/join/' + code, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    const data = await r.json();
+    if (r.ok) {
+        alert('✅ Вы вступили в группу "' + data.group_name + '"');
+        window.location.href = '/groups';
+    } else {
+        alert('❌ ' + (data.detail || 'Ошибка'));
+    }
+}
+
+async function joinByCode(e) {
+    e.preventDefault();
+    await joinGroup(document.getElementById('inviteCode').value.trim());
+}
+
+{% if not user.is_teacher %}
+(async function() {
+    const r = await fetch('/groups/api/list', {credentials: 'include'});
+    if (!r.ok) return;
+    const groups = await r.json();
+    const container = document.getElementById('myGroups');
+    if (groups.length === 0) {
+        container.innerHTML = '<div class="text-muted small">Вы пока не вступили ни в одну группу</div>';
+    } else {
+        container.innerHTML = '<ul class="mb-0">' + groups.map(function(g) {
+            return '<li>' + g.name + ' (' + g.member_count + ' уч.)</li>';
+        }).join('') + '</ul>';
+    }
+})();
+{% endif %}
+{% else %}
+function joinByCode(e) {
+    e.preventDefault();
+    window.location.href = '/login?next=/groups/join/' + document.getElementById('inviteCode').value.trim();
+}
+{% endif %}
+</script>
+{% endblock %}
