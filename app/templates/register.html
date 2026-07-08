@@ -37,10 +37,6 @@
                         <label class="form-label">Пароль</label>
                         <input type="password" class="form-control" id="password" required>
                     </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="isTeacher">
-                        <label class="form-check-label">Я учитель</label>
-                    </div>
                     <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
                 </form>
                 <div class="mt-3 text-center">
@@ -62,7 +58,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         patronymic: document.getElementById('patronymic').value,
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
-        is_teacher: document.getElementById('isTeacher').checked
+        is_teacher: false
     };
     
     try {
