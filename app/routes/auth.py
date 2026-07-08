@@ -13,30 +13,29 @@ RATE_LIMIT_ENABLED = os.environ.get("RATE_LIMIT_ENABLED", "1") == "1"
 
 @router.post("/register")
 def register(
-    user: schemas.UserCreate,
+    user_data: schemas.UserCreate,
     response: Response,
     db: Session = Depends(database.get_db)
 ):
     try:
         db_user = db.query(models.User).filter(
-            (models.User.username == user.username) | (models.User.email == user.email)
+            (models.User.username == user_data.username) | (models.User.email == user_data.email)
         ).first()
         if db_user:
             raise HTTPException(status_code=400, detail="Username or email already registered")
 
-        hashed_password = auth.get_password_hash(user.password)
+        hashed_password = auth.get_password_hash(user_data.password)
         db_user = models.User(
-            username=user.username,
-            email=user.email,
+            username=user_data.username,
+            email=user_data.email,
             hashed_password=hashed_password,
-            is_teacher=user.is_teacher
+            is_teacher=user_data.is_teacher
         )
         db.add(db_user)
         db.commit()
-        db.refresh(db_user)
 
         access_token = auth.create_access_token(
-            data={"sub": user.username},
+            data={"sub": user_data.username},
             expires_delta=timedelta(minutes=30)
         )
 
