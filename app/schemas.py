@@ -13,6 +13,9 @@ class TaskType(str, Enum):
 class UserBase(BaseModel):
     username: str
     email: EmailStr
+    last_name: Optional[str] = None
+    first_name: Optional[str] = None
+    patronymic: Optional[str] = None
     is_teacher: bool = False
 
 

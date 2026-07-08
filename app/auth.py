@@ -27,6 +27,12 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
+def get_display_name(user) -> str:
+    parts = [user.last_name or "", user.first_name or "", user.patronymic or ""]
+    full = " ".join(p for p in parts if p)
+    return full.strip() or user.username
+
+
 def authenticate_user(db: Session, username: str, password: str):
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
