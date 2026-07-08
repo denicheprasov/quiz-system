@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, UploadFile, File
+from fastapi import FastAPI, Request, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -98,16 +98,15 @@ async def profile_page(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/profile/update")
 def update_profile(
-    last_name: str = "", first_name: str = "", patronymic: str = "",
+    last_name: str = Form(""),
+    first_name: str = Form(""),
+    patronymic: str = Form(""),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    if last_name:
-        current_user.last_name = last_name
-    if first_name:
-        current_user.first_name = first_name
-    if patronymic:
-        current_user.patronymic = patronymic
+    current_user.last_name = last_name or None
+    current_user.first_name = first_name or None
+    current_user.patronymic = patronymic or None
     db.commit()
     return {"message": "Profile updated"}
 
