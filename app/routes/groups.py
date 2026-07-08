@@ -152,9 +152,29 @@ async def join_page(request: Request, code: str, db: Session = Depends(database.
     group = db.query(models.StudentGroup).filter(models.StudentGroup.invite_code == code).first()
     user = auth.get_user_from_request(request, db)
 
-    return templates.TemplateResponse("join_group.html", {
-        "request": request,
-        "user": user,
-        "invite_code": code,
-        "group_name": group.name if group else None,
-    })
+    if not group:
+        return templates.TemplateResponse("join_group.html", {
+            "request": request, "user": user,
+            "invite_code": code, "group_name": None,
+        })
+
+    if not user:
+        return templates.TemplateResponse("join_group.html", {
+            "request": request, "user": user,
+            "invite_code": code, "group_name": group.name,
+        })
+
+    if user.is_teacher:
+        return RedirectResponse(url="/groups", status_code=302)
+
+    existing = db.query(models.GroupMember).filter(
+        models.GroupMember.group_id == group.id,
+        models.GroupMember.student_id == user.id,
+    ).first()
+
+    if not existing:
+        member = models.GroupMember(group_id=group.id, student_id=user.id)
+        db.add(member)
+        db.commit()
+
+    return RedirectResponse(url="/student/dashboard", status_code=302)
