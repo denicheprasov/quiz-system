@@ -170,10 +170,9 @@ class PracticeSession(Base):
     correct_answers = Column(Integer, default=0)
     started_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
-    started_at = Column(DateTime, default=datetime.utcnow)
 
-
-class StudentGroup(Base):
+    user = relationship("User", back_populates="practice_sessions")
+    practice_tasks = relationship("PracticeTask", back_populates="session")
     __tablename__ = "student_groups"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
