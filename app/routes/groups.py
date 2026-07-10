@@ -8,6 +8,7 @@ from app import models, database, auth
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 templates = Jinja2Templates(directory="app/templates")
+templates.env.globals["display_name"] = auth.get_display_name
 
 
 def _generate_code(length=8):
