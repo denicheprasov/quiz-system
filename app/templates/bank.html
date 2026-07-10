@@ -139,6 +139,26 @@
     </div>
 </div>
 
+<div class="modal fade" id="variantModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📋 Добавить в вариант</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="variantTaskId">
+                <div id="variantList" class="list-group"></div>
+                <hr>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="newVariantName" placeholder="Новый вариант">
+                    <button class="btn btn-success" onclick="createAndAdd()">➕ Создать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function loadTasks(filters) {
     var container = document.getElementById('tasksList');
@@ -215,6 +235,7 @@ function loadTasks(filters) {
                 html += '<td class="action-cell">';
                 html += '<button class="btn btn-info btn-sm" onclick="viewTask(' + task.id + ')">👁️</button>';
                 html += '<button class="btn btn-warning btn-sm" onclick="editTask(' + task.id + ')">✏️</button>';
+                html += '<button class="btn btn-secondary btn-sm" onclick="addToVariant(' + task.id + ')">📋</button>';
                 if (!task.is_verified) {
                     html += '<button class="btn btn-success btn-sm" onclick="verifyTask(' + task.id + ')">✅</button>';
                 }
@@ -374,6 +395,69 @@ function saveEdit() {
         loadTasks();
     })
     .catch(function() { alert('Ошибка сохранения'); });
+}
+
+function addToVariant(taskId) {
+    document.getElementById('variantTaskId').value = taskId;
+    var list = document.getElementById('variantList');
+    list.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>';
+    var modal = new bootstrap.Modal(document.getElementById('variantModal'));
+    modal.show();
+
+    fetch('/variants/', {credentials: 'include'})
+    .then(function(r) { return r.json(); })
+    .then(function(variants) {
+        if (variants.length === 0) {
+            list.innerHTML = '<div class="text-muted small">Нет вариантов. Создайте новый ниже.</div>';
+            return;
+        }
+        list.innerHTML = '';
+        variants.forEach(function(v) {
+            var item = document.createElement('a');
+            item.className = 'list-group-item list-group-item-action';
+            item.href = '#';
+            item.innerHTML = v.title + ' <span class="badge bg-secondary">' + (v.variant_tasks ? v.variant_tasks.length : 0) + ' зад.</span>';
+            item.onclick = function(e) {
+                e.preventDefault();
+                addTaskToVariant(v.id, taskId);
+            };
+            list.appendChild(item);
+        });
+    })
+    .catch(function() { list.innerHTML = '<div class="text-danger small">Ошибка загрузки</div>'; });
+}
+
+function addTaskToVariant(variantId, taskId) {
+    fetch('/variants/' + variantId + '/tasks/' + taskId, {
+        method: 'POST',
+        credentials: 'include'
+    })
+    .then(function(r) {
+        if (r.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('variantModal')).hide();
+            alert('✅ Задание добавлено в вариант');
+        } else {
+            return r.json().then(function(d) { throw new Error(d.detail); });
+        }
+    })
+    .catch(function(e) { alert('❌ ' + e.message); });
+}
+
+function createAndAdd() {
+    var name = document.getElementById('newVariantName').value;
+    if (!name) return;
+    var taskId = document.getElementById('variantTaskId').value;
+    var formData = new FormData();
+    formData.append('title', name);
+
+    fetch('/variants/create', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(v) { return addTaskToVariant(v.id, taskId); })
+    .catch(function() { alert('Ошибка'); });
 }
 
 function deleteAllTasks() {
