@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Прохождение варианта{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header gradient">
+                <h4 class="mb-0">📋 Прохождение варианта</h4>
+            </div>
+            <div class="card-body">
+                <div id="variantHeader" class="mb-3"></div>
+                <div id="tasks"></div>
+                <div id="submitSection" class="d-none mt-3">
+                    <hr>
+                    <h5>Результаты</h5>
+                    <div id="results"></div>
+                    <a href="/student/dashboard" class="btn btn-primary mt-2">📊 На дашборд</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadVariant() {
+    const container = document.getElementById('tasks');
+    container.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+
+    const r = await fetch('/variants/' + {{ variant_id }}, {credentials: 'include'});
+    if (!r.ok) { container.innerHTML = '<div class="alert alert-danger">Ошибка загрузки варианта</div>'; return; }
+
+    const variant = await r.json();
+    document.getElementById('variantHeader').innerHTML = '<h5>' + variant.title + '</h5>';
+
+    if (!variant.variant_tasks || variant.variant_tasks.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">В варианте нет заданий</div>';
+        return;
+    }
+
+    var html = '<div class="accordion" id="variantAccordion">';
+    variant.variant_tasks.forEach(function(vt, idx) {
+        var task = vt.task;
+        if (!task) return;
+        html += '<div class="accordion-item">';
+        html += '<h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vt' + vt.id + '">';
+        html += 'Задание ' + vt.order_number;
+        html += '</button></h2>';
+        html += '<div id="vt' + vt.id + '" class="accordion-collapse collapse" data-bs-parent="#variantAccordion">';
+        html += '<div class="accordion-body">';
+        html += '<p>' + task.text.replace(/\n/g, '<br>') + '</p>';
+        if (task.image_url) html += '<img src="' + task.image_url + '" class="img-fluid rounded question-image mb-2">';
+        if (task.file_url) html += '<p class="mt-2"><a href="' + task.file_url + '" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>';
+        html += '<div class="mb-3">';
+        html += '<label class="form-label">Ваш ответ:</label>';
+        html += '<input type="text" class="form-control answer-input" data-task-id="' + vt.id + '" data-correct="' + task.correct_answer + '">';
+        html += '</div>';
+        html += '<button class="btn btn-sm btn-outline-success check-btn" onclick="checkAnswer(this)">✅ Проверить</button>';
+        html += '<div class="result-feedback mt-1"></div>';
+        html += '</div></div></div>';
+    });
+    html += '</div>';
+    html += '<button class="btn btn-success mt-3 w-100" onclick="submitAll()">📤 Отправить все</button>';
+    container.innerHTML = html;
+}
+
+function checkAnswer(btn) {
+    var card = btn.closest('.accordion-body');
+    var input = card.querySelector('.answer-input');
+    var feedback = card.querySelector('.result-feedback');
+    var correct = input.dataset.correct;
+    if (input.value.trim().toLowerCase() === correct.toLowerCase()) {
+        feedback.innerHTML = '<span class="text-success">✅ Верно</span>';
+    } else {
+        feedback.innerHTML = '<span class="text-danger">❌ Неверно. Правильный ответ: ' + correct + '</span>';
+    }
+}
+
+function submitAll() {
+    var inputs = document.querySelectorAll('.answer-input');
+    var total = inputs.length;
+    var correct = 0;
+    var results = '';
+
+    inputs.forEach(function(input) {
+        if (input.value.trim().toLowerCase() === input.dataset.correct.toLowerCase()) {
+            correct++;
+        }
+    });
+
+    document.getElementById('submitSection').classList.remove('d-none');
+    document.getElementById('results').innerHTML = '<div class="alert alert-info">✅ Верно: ' + correct + ' из ' + total + '</div>';
+    document.getElementById('tasks').scrollIntoView({behavior: 'smooth'});
+}
+
+loadVariant();
+</script>
+{% endblock %}

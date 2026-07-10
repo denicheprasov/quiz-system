@@ -242,13 +242,21 @@ async def student_practice_page(request: Request, db: Session = Depends(get_db))
 @app.get("/student/generate", response_class=HTMLResponse)
 async def student_generate_page(request: Request, db: Session = Depends(get_db)):
     user = get_user_from_request(request, db)
-
     if not user:
         return RedirectResponse(url="/login")
-
     return templates.TemplateResponse(
         "student_generate.html", {"request": request, "user": user}
     )
+
+
+@app.get("/student/variant/{variant_id}", response_class=HTMLResponse)
+async def student_take_variant_page(request: Request, variant_id: int, db: Session = Depends(get_db)):
+    user = get_user_from_request(request, db)
+    if not user:
+        return RedirectResponse(url="/login")
+    return templates.TemplateResponse(
+        "take_variant.html", {"request": request, "user": user, "variant_id": variant_id}
+   )
 
 
 @app.get("/student/history", response_class=HTMLResponse)

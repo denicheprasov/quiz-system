@@ -44,8 +44,7 @@
                     <hr>
                     <h5>✅ Вариант сгенерирован</h5>
                     <div id="variantInfo" class="mb-3"></div>
-                    <h6>Задания:</h6>
-                    <div id="taskList" class="list-group"></div>
+                    <a id="takeLink" href="#" class="btn btn-primary w-100">📋 Перейти к варианту</a>
                 </div>
             </div>
         </div>
@@ -75,18 +74,7 @@ document.getElementById('variantForm').addEventListener('submit', async (e) => {
 
     const result = await response.json();
     document.getElementById('result').style.display = 'block';
-    document.getElementById('variantInfo').innerHTML =
-        `<p><strong>Название:</strong> ${result.title}</p>` +
-        `<p><strong>Заданий:</strong> ${result.task_count || result.variant_tasks?.length || 0}</p>`;
-
-    const taskList = document.getElementById('taskList');
-    taskList.innerHTML = '';
-    (result.variant_tasks || []).forEach(task => {
-        taskList.innerHTML +=
-            `<div class="list-group-item">
-                <strong>Задание ${task.order_number}:</strong> ${task.task?.text?.substring(0, 100) || 'Нет текста'}...
-            </div>`;
-    });
+    document.getElementById('takeLink').href = '/student/variant/' + result.id;
 });
 </script>
 {% endblock %}
