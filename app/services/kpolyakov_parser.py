@@ -50,18 +50,9 @@ class KpolyakovParser:
         if ext not in (".gif", ".png", ".jpg", ".jpeg"):
             return None
 
-        filename = f"{uuid.uuid4().hex}{ext}"
-        filepath = os.path.join(UPLOAD_DIR, filename)
-        try:
-            req = urllib.request.Request(img_url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                with open(filepath, "wb") as f:
-                    f.write(resp.read())
-            return f"/uploads/{filename}"
-        except Exception:
-            if img_url.startswith("http"):
-                return img_url
-            return None
+        if img_url.startswith("http"):
+            return img_url
+        return None
 
     def _extract_images_from_html(self, html_text: str) -> List[str]:
         urls = []
