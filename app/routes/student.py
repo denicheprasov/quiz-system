@@ -302,13 +302,10 @@ def answer_practice_task_api(
     }
 
 
-@router.get(
-    "/api/practice/history", response_model=List[schemas.PracticeSessionResponse]
-)
+@router.get("/api/practice/history")
 def get_practice_history_api(request: Request, db: Session = Depends(database.get_db)):
-    """API: Получить историю тренировок"""
+    """API: Получить историю тренировок и вариантов"""
     current_user = get_user_from_request(request, db)
-
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
@@ -319,7 +316,28 @@ def get_practice_history_api(request: Request, db: Session = Depends(database.ge
         .all()
     )
 
-    return sessions
+    variant_assignments = (
+        db.query(models.VariantAssignment)
+        .filter(
+            models.VariantAssignment.student_id == current_user.id,
+            models.VariantAssignment.status == "completed",
+        )
+        .all()
+    )
+
+    return {
+        "practice_sessions": sessions,
+        "variants": [
+            {
+                "title": va.variant.title if va.variant else "Вариант",
+                "correct_answers": va.score,
+                "total_tasks": va.total,
+                "completed_at": va.assigned_at.isoformat() if va.assigned_at else None,
+                "type": "variant",
+            }
+            for va in variant_assignments
+        ],
+    }
 
 
 @router.post("/api/generate-variant")
