@@ -19,7 +19,7 @@ async def create_variant_page(request: Request, db: Session = Depends(database.g
     return templates.TemplateResponse("create_variant.html", {"request": request, "user": user})
 
 
-@router.post("/create")
+@router.post("/new")
 def create_variant(
     title: str = Form(...),
     db: Session = Depends(database.get_db),
