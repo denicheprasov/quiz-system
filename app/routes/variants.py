@@ -9,6 +9,7 @@ from app.services.variant_generator import VariantGenerator
 
 router = APIRouter(prefix="/variants", tags=["variants"])
 templates = Jinja2Templates(directory="app/templates")
+templates.env.globals["display_name"] = auth.get_display_name
 
 
 @router.get("/create", response_class=HTMLResponse)
