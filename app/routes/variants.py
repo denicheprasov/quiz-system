@@ -60,7 +60,7 @@ def add_task_to_variant(
     if existing:
         raise HTTPException(status_code=400, detail="Task already in variant")
 
-    max_order = db.query(db.func.max(models.VariantTask.order_number)).filter(
+    max_order = db.query(func.max(models.VariantTask.order_number)).filter(
         models.VariantTask.variant_id == variant_id
     ).scalar() or 0
 
