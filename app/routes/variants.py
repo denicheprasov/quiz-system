@@ -22,12 +22,16 @@ async def create_variant_page(request: Request, db: Session = Depends(database.g
 @router.post("/new")
 def create_variant(
     title: str = Form(...),
+    request: Request = None,
     db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_user),
 ):
-    if not current_user.is_teacher:
+    try:
+        user = auth.get_user_from_request(request, db) if request else None
+    except Exception:
+        user = None
+    if not user or not user.is_teacher:
         raise HTTPException(status_code=403)
-    variant = models.Variant(title=title, created_by=current_user.id)
+    variant = models.Variant(title=title, created_by=user.id)
     db.add(variant)
     db.commit()
     db.refresh(variant)
