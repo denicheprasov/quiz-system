@@ -57,24 +57,10 @@ async function loadVariant() {
         html += '<label class="form-label">Ваш ответ:</label>';
         html += '<input type="text" class="form-control answer-input" data-correct="' + task.correct_answer + '">';
         html += '</div>';
-        html += '<button class="btn btn-sm btn-outline-success" onclick="checkAnswer(this)">✅ Проверить</button>';
-        html += '<div class="result-feedback mt-1"></div>';
         html += '</div>';
     });
     html += '<button class="btn btn-success mt-3 w-100" onclick="submitAll()">📤 Отправить все</button>';
     container.innerHTML = html;
-}
-
-function checkAnswer(btn) {
-    var card = btn.closest('.task-card');
-    var input = card.querySelector('.answer-input');
-    var feedback = card.querySelector('.result-feedback');
-    var correct = input.dataset.correct;
-    if (input.value.trim().toLowerCase() === correct.toLowerCase()) {
-        feedback.innerHTML = '<span class="text-success">✅ Верно</span>';
-    } else {
-        feedback.innerHTML = '<span class="text-danger">❌ Неверно. Правильный ответ: ' + correct + '</span>';
-    }
 }
 
 function submitAll() {
