@@ -247,8 +247,12 @@ def delete_all_tasks(
         query = query.filter(models.TaskBank.task_number == task_number)
         label = f"№{task_number}"
 
-    count = query.count()
-    query.delete()
+    tasks = query.all()
+    count = len(tasks)
+    for task in tasks:
+        db.query(models.VariantTask).filter(models.VariantTask.task_bank_id == task.id).delete()
+        db.query(models.PracticeTask).filter(models.PracticeTask.task_bank_id == task.id).delete()
+        db.delete(task)
     db.commit()
     return {"message": f"Удалено {count} заданий {label}"}
 
