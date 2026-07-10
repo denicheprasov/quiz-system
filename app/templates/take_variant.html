@@ -80,7 +80,7 @@ async function submitAll() {
         method: 'POST',
         credentials: 'include',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({answers: answers})
+        body: JSON.stringify(answers)
     });
 
     if (!r.ok) { alert('Ошибка отправки'); return; }
