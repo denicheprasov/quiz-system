@@ -405,7 +405,51 @@ function viewResults(quizId) {
 
 // Просмотр варианта
 function viewVariant(variantId) {
-    alert('Функция просмотра варианта в разработке');
+    var modal = new bootstrap.Modal(document.getElementById('resultsModal'));
+    modal.show();
+
+    var container = document.getElementById('resultsContent');
+    container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+
+    fetch('/variants/' + variantId, {credentials: 'include'})
+    .then(function(response) {
+        if (!response.ok) throw new Error('Ошибка загрузки');
+        return response.json();
+    })
+    .then(function(variant) {
+        var html = '<h5>' + variant.title + '</h5>';
+        if (variant.description) html += '<p class="text-muted">' + variant.description + '</p>';
+        html += '<hr><div class="accordion" id="variantAccordion">';
+
+        if (variant.variant_tasks && variant.variant_tasks.length > 0) {
+            variant.variant_tasks.forEach(function(vt) {
+                var task = vt.task;
+                html += '<div class="accordion-item">';
+                html += '<h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vt' + vt.id + '">';
+                html += 'Задание ' + vt.order_number;
+                if (task) html += ' — ' + task.text.substring(0, 80) + '...';
+                html += '</button></h2>';
+                html += '<div id="vt' + vt.id + '" class="accordion-collapse collapse" data-bs-parent="#variantAccordion">';
+                html += '<div class="accordion-body">';
+                if (task) {
+                    html += '<p>' + task.text.replace(/\n/g, '<br>') + '</p>';
+                    if (task.image_url) html += '<img src="' + task.image_url + '" class="img-fluid rounded question-image mb-2">';
+                    html += '<p><strong>Ответ:</strong> ' + task.correct_answer + '</p>';
+                } else {
+                    html += '<p class="text-muted">Задание не найдено в банке</p>';
+                }
+                html += '</div></div></div>';
+            });
+        } else {
+            html += '<p class="text-muted">В варианте нет заданий</p>';
+        }
+
+        html += '</div>';
+        container.innerHTML = html;
+    })
+    .catch(function(error) {
+        container.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
+    });
 }
 
 // Удаление теста
