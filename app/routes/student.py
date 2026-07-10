@@ -36,10 +36,27 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
         .all()
     )
 
+    # Вирианты, назначенные учителем
+    variant_assignments = (
+        db.query(models.VariantAssignment)
+        .filter(models.VariantAssignment.student_id == current_user.id)
+        .all()
+    )
+
     return {
         "assigned_tests": assigned,
+        "variant_assignments": [
+            {
+                "id": va.id,
+                "variant_id": va.variant_id,
+                "variant_title": va.variant.title if va.variant else "Вариант",
+                "status": va.status,
+                "assigned_at": va.assigned_at.isoformat() if va.assigned_at else None,
+            }
+            for va in variant_assignments
+        ],
         "practice_sessions": practice_sessions,
-        "total_assigned": len(assigned),
+        "total_assigned": len(assigned) + len(variant_assignments),
         "completed_assigned": len([a for a in assigned if a.status == "completed"]),
     }
 

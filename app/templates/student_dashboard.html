@@ -90,8 +90,25 @@ async function loadDashboard() {
         
         // Отображаем выданные тесты
         const container = document.getElementById('assignedTests');
+        let html = '';
+        
+        // Назначенные варианты
+        if (data.variant_assignments && data.variant_assignments.length > 0) {
+            html += '<h6 class="mt-2">📋 Назначенные варианты</h6><div class="list-group mb-3">';
+            data.variant_assignments.forEach(function(va) {
+                html += '<a href="/student/variant/' + va.variant_id + '" class="list-group-item list-group-item-action">';
+                html += '<div class="d-flex w-100 justify-content-between">';
+                html += '<h6 class="mb-1">' + (va.variant_title || 'Вариант') + '</h6>';
+                html += '<small class="text-muted">' + (va.status === 'pending' ? '⏳ Ожидает' : '✅ Завершен') + '</small>';
+                html += '</div>';
+                html += '<small class="text-muted">Выдан: ' + new Date(va.assigned_at).toLocaleDateString() + '</small>';
+                html += '</a>';
+            });
+            html += '</div>';
+        }
+        
         if (data.assigned_tests && data.assigned_tests.length > 0) {
-            let html = '<div class="list-group">';
+            html += '<h6 class="mt-2">📝 Назначенные тесты</h6><div class="list-group">';
             data.assigned_tests.forEach(test => {
                 const statusMap = {
                     'pending': '⏳ Ожидает',
@@ -111,10 +128,12 @@ async function loadDashboard() {
                 `;
             });
             html += '</div>';
-            container.innerHTML = html;
-        } else {
-            container.innerHTML = '<div class="alert alert-info">📭 У вас нет выданных тестов</div>';
         }
+        
+        if (!html) {
+            html = '<div class="alert alert-info">📭 Нет назначенных заданий</div>';
+        }
+        container.innerHTML = html;
         
     } catch (error) {
         console.error('Error:', error);
