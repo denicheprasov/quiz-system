@@ -450,7 +450,7 @@ function createAndAdd() {
     var formData = new FormData();
     formData.append('title', name);
 
-    fetch('/variants/create', {
+    fetch('/variants/new', {
         method: 'POST',
         credentials: 'include',
         body: formData

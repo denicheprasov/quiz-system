@@ -30,7 +30,7 @@ async function createVariant(e) {
     const formData = new FormData();
     formData.append('title', title);
 
-    const r = await fetch('/variants/create', {
+    const r = await fetch('/variants/new', {
         method: 'POST',
         credentials: 'include',
         body: formData
