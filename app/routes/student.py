@@ -198,17 +198,50 @@ def start_practice_api(
     return session
 
 
+@router.get("/api/practice/history")
+def get_practice_history_api(request: Request, db: Session = Depends(database.get_db)):
+    """API: Получить историю тренировок и вариантов"""
+    current_user = get_user_from_request(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    sessions = (
+        db.query(models.PracticeSession)
+        .filter(models.PracticeSession.user_id == current_user.id)
+        .order_by(models.PracticeSession.started_at.desc())
+        .all()
+    )
+
+    variant_assignments = (
+        db.query(models.VariantAssignment)
+        .filter(
+            models.VariantAssignment.student_id == current_user.id,
+            models.VariantAssignment.status == "completed",
+        )
+        .all()
+    )
+
+    return {
+        "practice_sessions": sessions,
+        "variants": [
+            {
+                "title": va.variant.title if va.variant else "Вариант",
+                "correct_answers": va.score,
+                "total_tasks": va.total,
+                "completed_at": va.assigned_at.isoformat() if va.assigned_at else None,
+                "type": "variant",
+            }
+            for va in variant_assignments
+        ],
+    }
+
+
 @router.get(
     "/api/practice/{session_id}", response_model=schemas.PracticeSessionResponse
 )
 def get_practice_session_api(
     session_id: int, request: Request, db: Session = Depends(database.get_db)
 ):
-    """API: Получить сессию тренировки"""
-    current_user = get_user_from_request(request, db)
-
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
 
     session = (
         db.query(models.PracticeSession)
