@@ -128,10 +128,11 @@ def get_variant(
 def assign_variant_to_group(
     variant_id: int,
     group_id: int,
+    request: Request,
     db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_user),
 ):
-    if not current_user.is_teacher:
+    user = auth.get_user_from_request(request, db)
+    if not user or not user.is_teacher:
         raise HTTPException(status_code=403)
 
     variant = db.query(models.Variant).filter(models.Variant.id == variant_id).first()
