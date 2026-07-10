@@ -16,9 +16,18 @@
                             <strong>Группа:</strong> {{ group_name }}
                         </div>
                         {% if user %}
-                            <button class="btn btn-success w-100" onclick="joinGroup('{{ invite_code }}')">
-                                📋 Вступить в группу
-                            </button>
+                            <div id="joinSection">
+                                <p class="mb-3">Вы собираетесь вступить в группу <strong>{{ group_name }}</strong></p>
+                                <button class="btn btn-success w-100" onclick="joinGroup('{{ invite_code }}')">
+                                    📋 Вступить в группу
+                                </button>
+                            </div>
+                            <div id="joinedSection" class="d-none">
+                                <div class="alert alert-success">
+                                    ✅ Вы вступили в группу <strong>{{ group_name }}</strong>!
+                                </div>
+                                <a href="/student/dashboard" class="btn btn-primary w-100">📊 Перейти на дашборд</a>
+                            </div>
                         {% else %}
                             <div class="d-grid gap-2 mt-3">
                                 <a href="/login?next=/groups/join/{{ invite_code }}" class="btn btn-primary">🔐 Войти и вступить</a>
@@ -59,8 +68,8 @@ async function joinGroup(code) {
     });
     const data = await r.json();
     if (r.ok) {
-        alert('✅ Вы вступили в группу "' + data.group_name + '"');
-        window.location.href = '/groups';
+        document.getElementById('joinSection').classList.add('d-none');
+        document.getElementById('joinedSection').classList.remove('d-none');
     } else {
         alert('❌ ' + (data.detail || 'Ошибка'));
     }

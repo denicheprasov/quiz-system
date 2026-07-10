@@ -169,14 +169,7 @@ async def join_page(request: Request, code: str, db: Session = Depends(database.
     if user.is_teacher:
         return RedirectResponse(url="/groups", status_code=302)
 
-    existing = db.query(models.GroupMember).filter(
-        models.GroupMember.group_id == group.id,
-        models.GroupMember.student_id == user.id,
-    ).first()
-
-    if not existing:
-        member = models.GroupMember(group_id=group.id, student_id=user.id)
-        db.add(member)
-        db.commit()
-
-    return RedirectResponse(url="/student/dashboard", status_code=302)
+    return templates.TemplateResponse("join_group.html", {
+        "request": request, "user": user,
+        "invite_code": code, "group_name": group.name,
+    })
