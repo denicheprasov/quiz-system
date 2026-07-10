@@ -123,6 +123,49 @@ def get_variant(
         raise HTTPException(status_code=404, detail="Variant not found")
     return variant
 
+
+@router.post("/{variant_id}/assign/{group_id}")
+def assign_variant_to_group(
+    variant_id: int,
+    group_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403)
+
+    variant = db.query(models.Variant).filter(models.Variant.id == variant_id).first()
+    if not variant:
+        raise HTTPException(status_code=404, detail="Variant not found")
+
+    group = db.query(models.StudentGroup).filter(models.StudentGroup.id == group_id).first()
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    members = db.query(models.GroupMember).filter(models.GroupMember.group_id == group_id).all()
+    if not members:
+        raise HTTPException(status_code=400, detail="Group has no members")
+
+    assigned = 0
+    for member in members:
+        existing = db.query(models.VariantAssignment).filter(
+            models.VariantAssignment.variant_id == variant_id,
+            models.VariantAssignment.student_id == member.student_id,
+        ).first()
+        if existing:
+            continue
+        assignment = models.VariantAssignment(
+            variant_id=variant_id,
+            student_id=member.student_id,
+            assigned_by=current_user.id,
+        )
+        db.add(assignment)
+        assigned += 1
+
+    db.commit()
+    return {"message": f"Variant assigned to {assigned} students"}
+
+
 @router.delete("/{variant_id}")
 def delete_variant(
     variant_id: int,

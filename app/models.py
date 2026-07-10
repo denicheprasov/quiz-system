@@ -217,3 +217,18 @@ class PracticeTask(Base):
     
     session = relationship("PracticeSession", back_populates="practice_tasks")
     task = relationship("TaskBank", back_populates="practice_tasks")
+
+
+class VariantAssignment(Base):
+    __tablename__ = "variant_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    variant_id = Column(Integer, ForeignKey("variants.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    assigned_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    assigned_at = Column(DateTime, default=datetime.utcnow)
+    status = Column(String(20), default="pending")
+
+    variant = relationship("Variant")
+    student = relationship("User", foreign_keys=[student_id])
+    assigned_by_user = relationship("User", foreign_keys=[assigned_by])
