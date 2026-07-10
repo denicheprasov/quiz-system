@@ -83,6 +83,11 @@
                             👥 Пользователи
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="groups-tab" data-bs-toggle="tab" href="#groups" role="tab">
+                            👥 Группы
+                        </a>
+                    </li>
                 </ul>
                 
                 <div class="tab-content mt-3" id="adminTabsContent">
@@ -113,6 +118,16 @@
                                 <div class="spinner-border" role="status"></div>
                                 <p>Загрузка...</p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка с группами -->
+                <div class="tab-pane fade" id="groups" role="tabpanel">
+                    <div id="groupsList">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status"></div>
+                            <p>Загрузка...</p>
                         </div>
                     </div>
                 </div>
@@ -439,12 +454,54 @@ function editQuiz(quizId) {
     window.location.href = '/create-quiz?edit=' + quizId;
 }
 
+// Загрузка групп
+function loadGroups() {
+    var container = document.getElementById('groupsList');
+    container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    
+    fetch('/groups/api/list', {credentials: 'include'})
+    .then(function(response) {
+        if (!response.ok) throw new Error('Ошибка загрузки групп');
+        return response.json();
+    })
+    .then(function(groups) {
+        if (groups.length === 0) {
+            container.innerHTML = '<div class="alert alert-info">📭 Нет созданных групп</div>';
+            return;
+        }
+        
+        var html = '<div class="list-group">';
+        for (var i = 0; i < groups.length; i++) {
+            var g = groups[i];
+            var link = window.location.origin + '/groups/join/' + g.invite_code;
+            html += '<div class="list-group-item">';
+            html += '<div class="d-flex justify-content-between"><div><strong>' + g.name + '</strong><br><small>Участников: ' + g.member_count + '</small></div>';
+            html += '<div><button class="btn btn-sm btn-outline-info" onclick="navigator.clipboard.writeText(\'' + link + '\').then(function(){alert(\'Ссылка скопирована\');})">📋 Копировать ссылку</button>';
+            html += ' <button class="btn btn-sm btn-outline-danger" onclick="deleteAdminGroup(' + g.id + ')">🗑</button></div></div>';
+            html += '<div class="mt-1"><small class="text-muted">Ссылка: <code>' + link + '</code></small></div>';
+            html += '</div>';
+        }
+        html += '</div>';
+        container.innerHTML = html;
+    })
+    .catch(function(error) {
+        container.innerHTML = '<div class="alert alert-danger">❌ Ошибка загрузки групп: ' + error.message + '</div>';
+    });
+}
+
+function deleteAdminGroup(id) {
+    if (!confirm('Удалить группу?')) return;
+    fetch('/groups/' + id, {method: 'DELETE', credentials: 'include'})
+    .then(function(r) { if (r.ok) loadGroups(); else alert('Ошибка'); });
+}
+
 // Загружаем все данные
 document.addEventListener('DOMContentLoaded', function() {
     loadStats();
     loadQuizzes();
     loadVariants();
     loadStudents();
+    loadGroups();
 });
 </script>
 {% endblock %}
