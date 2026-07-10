@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import random
@@ -373,6 +373,56 @@ def generate_student_variant_api(
     db.refresh(variant)
 
     return variant
+
+
+@router.post("/variant/{variant_id}/submit")
+def submit_variant(
+    variant_id: int,
+    request: Request,
+    answers: dict = Body({}),
+    db: Session = Depends(database.get_db),
+):
+    current_user = get_user_from_request(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401)
+
+    variant = db.query(models.Variant).filter(models.Variant.id == variant_id).first()
+    if not variant:
+        raise HTTPException(status_code=404, detail="Variant not found")
+
+    assignment = db.query(models.VariantAssignment).filter(
+        models.VariantAssignment.variant_id == variant_id,
+        models.VariantAssignment.student_id == current_user.id,
+    ).first()
+
+    total = 0
+    correct = 0
+    results = []
+
+    for vt in variant.variant_tasks:
+        total += 1
+        task = vt.task
+        if not task:
+            continue
+        user_answer = answers.get(str(vt.id), "")
+        is_correct = user_answer.strip().lower() == task.correct_answer.strip().lower()
+        if is_correct:
+            correct += 1
+        results.append({
+            "variant_task_id": vt.id,
+            "order_number": vt.order_number,
+            "user_answer": user_answer,
+            "correct_answer": task.correct_answer,
+            "is_correct": is_correct,
+        })
+
+    if assignment:
+        assignment.status = "completed"
+        assignment.score = correct
+        assignment.total = total
+        db.commit()
+
+    return {"score": correct, "total": total, "results": results}
 
 
 # ===== ДОБАВЛЕН ЭНДПОИНТ ДЛЯ УЧЕНИКОВ =====

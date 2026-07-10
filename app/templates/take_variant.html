@@ -4,8 +4,10 @@
 
 {% block content %}
 <style>
-.task-card { border: 1px solid var(--bs-border-color); border-radius: var(--card-radius); padding: 20px; margin-bottom: 16px; background: var(--bs-card-bg); }
+.task-card { border: 1px solid var(--bs-border-color); border-radius: var(--card-radius); padding: 20px; margin-bottom: 16px; background: var(--bs-card-bg); transition: border-color 0.3s, box-shadow 0.3s; }
 .task-card img { display: block; margin: 12px auto; max-height: 300px; }
+.task-card.correct { border-color: #198754; box-shadow: 0 0 0 2px rgba(25,135,84,0.2); }
+.task-card.incorrect { border-color: #dc3545; box-shadow: 0 0 0 2px rgba(220,53,69,0.2); }
 </style>
 
 <div class="row">
@@ -48,34 +50,61 @@ async function loadVariant() {
     variant.variant_tasks.forEach(function(vt) {
         var task = vt.task;
         if (!task) return;
-        html += '<div class="task-card">';
+        html += '<div class="task-card" data-id="' + vt.id + '">';
         html += '<h6>Задание ' + vt.order_number + '</h6>';
         html += '<p>' + task.text.replace(/\n/g, '<br>') + '</p>';
         if (task.image_url) html += '<img src="' + task.image_url + '" class="img-fluid rounded question-image">';
         if (task.file_url) html += '<p class="mt-2"><a href="' + task.file_url + '" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>';
         html += '<div class="mb-3">';
         html += '<label class="form-label">Ваш ответ:</label>';
-        html += '<input type="text" class="form-control answer-input" data-correct="' + task.correct_answer + '">';
+        html += '<input type="text" class="form-control answer-input" data-id="' + vt.id + '" data-correct="' + task.correct_answer + '">';
         html += '</div>';
+        html += '<div class="result-feedback mt-1"></div>';
         html += '</div>';
     });
-    html += '<button class="btn btn-success mt-3 w-100" onclick="submitAll()">📤 Отправить все</button>';
+    html += '<button class="btn btn-success mt-3 w-100" onclick="submitAll()" id="submitBtn">📤 Отправить все</button>';
     container.innerHTML = html;
 }
 
-function submitAll() {
+async function submitAll() {
     var inputs = document.querySelectorAll('.answer-input');
-    var total = inputs.length;
-    var correct = 0;
+    var answers = {};
+    inputs.forEach(function(inp) {
+        answers[inp.dataset.id] = inp.value;
+    });
 
-    inputs.forEach(function(input) {
-        if (input.value.trim().toLowerCase() === input.dataset.correct.toLowerCase()) {
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerHTML = '⏳ Отправка...';
+
+    const r = await fetch('/student/variant/' + {{ variant_id }} + '/submit', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({answers: answers})
+    });
+
+    if (!r.ok) { alert('Ошибка отправки'); return; }
+
+    const data = await r.json();
+    var correct = 0, total = 0;
+
+    data.results.forEach(function(res) {
+        var card = document.querySelector('.task-card[data-id="' + res.variant_task_id + '"]');
+        if (!card) return;
+        card.classList.remove('correct', 'incorrect');
+        card.classList.add(res.is_correct ? 'correct' : 'incorrect');
+        var feedback = card.querySelector('.result-feedback');
+        if (res.is_correct) {
+            feedback.innerHTML = '<span class="text-success fw-bold">✅ Верно</span>';
             correct++;
+        } else {
+            feedback.innerHTML = '<span class="text-danger fw-bold">❌ Неверно. Правильный ответ: ' + res.correct_answer + '</span>';
         }
+        total++;
     });
 
     document.getElementById('submitSection').classList.remove('d-none');
-    document.getElementById('results').innerHTML = '<div class="alert alert-info">✅ Верно: ' + correct + ' из ' + total + '</div>';
+    document.getElementById('results').innerHTML = '<div class="alert alert-info fs-5">✅ Верно: ' + data.score + ' из ' + data.total + '</div>';
     document.getElementById('tasks').scrollIntoView({behavior: 'smooth'});
 }
 
