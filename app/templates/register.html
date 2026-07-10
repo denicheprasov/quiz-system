@@ -26,10 +26,6 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Логин</label>
-                        <input type="text" class="form-control" id="username" required>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">Email</label>
                         <input type="email" class="form-control" id="email" required>
                     </div>
@@ -52,7 +48,7 @@
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = {
-        username: document.getElementById('username').value,
+        username: document.getElementById('email').value,
         last_name: document.getElementById('lastName').value,
         first_name: document.getElementById('firstName').value,
         patronymic: document.getElementById('patronymic').value,
