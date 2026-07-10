@@ -32,7 +32,7 @@ def register(
             last_name=user_data.last_name,
             first_name=user_data.first_name,
             patronymic=user_data.patronymic,
-            is_teacher=user_data.is_teacher
+            is_teacher=False
         )
         db.add(db_user)
         db.commit()
