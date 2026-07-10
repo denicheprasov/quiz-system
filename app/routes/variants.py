@@ -144,8 +144,6 @@ def assign_variant_to_group(
         raise HTTPException(status_code=404, detail="Group not found")
 
     members = db.query(models.GroupMember).filter(models.GroupMember.group_id == group_id).all()
-    if not members:
-        raise HTTPException(status_code=400, detail="Group has no members")
 
     assigned = 0
     for member in members:
