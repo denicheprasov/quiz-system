@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Создать вариант{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header gradient">
+                <h4 class="mb-0">📋 Создать вариант</h4>
+            </div>
+            <div class="card-body">
+                <form onsubmit="createVariant(event)">
+                    <div class="mb-3">
+                        <label class="form-label">Название варианта</label>
+                        <input type="text" class="form-control" id="title" placeholder="Например: Вариант 1" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">➕ Создать</button>
+                </form>
+                <div id="result" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function createVariant(e) {
+    e.preventDefault();
+    const title = document.getElementById('title').value;
+    const formData = new FormData();
+    formData.append('title', title);
+
+    const r = await fetch('/variants/create', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    });
+
+    if (r.ok) {
+        const data = await r.json();
+        document.getElementById('result').innerHTML =
+            '<div class="alert alert-success">✅ Вариант «' + data.title + '» создан! ' +
+            '<a href="/bank" class="alert-link">Перейти в банк</a>, чтобы добавить задания.</div>';
+        document.getElementById('title').value = '';
+    } else {
+        document.getElementById('result').innerHTML = '<div class="alert alert-danger">❌ Ошибка создания</div>';
+    }
+}
+</script>
+{% endblock %}
