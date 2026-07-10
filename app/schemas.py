@@ -186,7 +186,7 @@ class VariantResponse(VariantBase):
 class PracticeTaskResponse(BaseModel):
     id: int
     order_number: int
-    task: TaskBankResponse
+    task: Optional[TaskBankResponse] = None
     user_answer: Optional[str] = None
     is_correct: bool = False
     points_earned: int = 0
