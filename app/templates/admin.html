@@ -570,11 +570,15 @@ function assignVariant(variantId) {
     fetch('/variants/' + variantId + '/assign/' + groupId, {
         method: 'POST', credentials: 'include'
     })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        alert(data.message);
+    .then(function(r) {
+        if (!r.ok) { return r.json().then(function(d) { throw new Error(d.detail || 'Ошибка'); }); }
+        return r.json();
     })
-    .catch(function() { alert('Ошибка'); });
+    .then(function(data) {
+        alert(data.message || 'Вариант выдан');
+        location.reload();
+    })
+    .catch(function(e) { alert(e.message); });
 }
 
 function createAdminGroup(e) {
