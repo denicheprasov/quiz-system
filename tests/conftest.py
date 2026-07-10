@@ -48,13 +48,16 @@ def db():
 
 
 @pytest.fixture
-def teacher_token(client):
-    client.post("/auth/register", json={
-        "username": "teacher",
-        "email": "teacher@test.com",
-        "password": "pass123",
-        "is_teacher": True
-    })
+def teacher_token(client, db):
+    user = User(
+        username="teacher",
+        email="teacher@test.com",
+        hashed_password=get_password_hash("pass123"),
+        is_teacher=True
+    )
+    db.add(user)
+    db.commit()
+
     r = client.post("/auth/login", json={
         "username": "teacher",
         "password": "pass123"
