@@ -228,6 +228,8 @@ class VariantAssignment(Base):
     assigned_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     assigned_at = Column(DateTime, default=datetime.utcnow)
     status = Column(String(20), default="pending")
+    score = Column(Integer, default=0)
+    total = Column(Integer, default=0)
 
     variant = relationship("Variant")
     student = relationship("User", foreign_keys=[student_id])
