@@ -8,7 +8,7 @@ from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
 from app.database import engine, Base, get_db
 from app.routes import auth, quizzes, bank, variants, student, groups
-from app.auth import get_current_user, get_user_from_request
+from app.auth import get_current_user, get_user_from_request, get_display_name
 from app import models
 from sqlalchemy.orm import Session
 import os
@@ -329,7 +329,7 @@ def list_users(
             "id": u.id,
             "username": u.username,
             "email": u.email,
-            "display_name": auth.get_display_name(u),
+            "display_name": get_display_name(u),
             "is_teacher": u.is_teacher,
             "created_at": u.created_at.isoformat() if u.created_at else None,
         }
