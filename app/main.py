@@ -353,6 +353,31 @@ def delete_user(
     if not user:
         raise HTTPException(status_code=404)
 
+    db.query(models.GroupMember).filter(models.GroupMember.student_id == user_id).delete()
+    db.query(models.StudentGroup).filter(models.StudentGroup.created_by == user_id).delete()
+    db.query(models.PracticeTask).filter(
+        models.PracticeTask.session_id.in_(
+            db.query(models.PracticeSession.id).filter(models.PracticeSession.user_id == user_id)
+        )
+    ).delete(synchronize_session=False)
+    db.query(models.PracticeSession).filter(models.PracticeSession.user_id == user_id).delete()
+    db.query(models.Result).filter(models.Result.user_id == user_id).delete()
+    db.query(models.AssignedTest).filter(
+        (models.AssignedTest.user_id == user_id) | (models.AssignedTest.assigned_by == user_id)
+    ).delete(synchronize_session=False)
+    db.query(models.Variant).filter(models.Variant.created_by == user_id).delete()
+    db.query(models.Question).filter(
+        models.Question.quiz_id.in_(
+            db.query(models.Quiz.id).filter(models.Quiz.created_by == user_id)
+        )
+    ).delete(synchronize_session=False)
+    db.query(models.Quiz).filter(models.Quiz.created_by == user_id).delete()
+    db.query(models.VariantTask).filter(
+        models.VariantTask.variant_id.in_(
+            db.query(models.Variant.id).filter(models.Variant.created_by == user_id)
+        )
+    ).delete(synchronize_session=False)
+
     db.delete(user)
     db.commit()
     return {"message": "User deleted"}
