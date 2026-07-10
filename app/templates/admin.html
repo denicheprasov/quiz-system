@@ -419,6 +419,8 @@ function viewVariant(variantId) {
     .then(function(variant) {
         var html = '<h5>' + variant.title + '</h5>';
         if (variant.description) html += '<p class="text-muted">' + variant.description + '</p>';
+        html += '<div class="mb-3"><select id="assignGroup" class="form-select"><option value="">Выдать группе...</option></select>';
+        html += '<button class="btn btn-primary btn-sm mt-1" onclick="assignVariant(' + variant.id + ')">📤 Выдать</button></div>';
         html += '<hr><div class="accordion" id="variantAccordion">';
 
         if (variant.variant_tasks && variant.variant_tasks.length > 0) {
@@ -447,6 +449,18 @@ function viewVariant(variantId) {
 
         html += '</div>';
         container.innerHTML = html;
+
+        fetch('/groups/api/list', {credentials: 'include'})
+        .then(function(r) { return r.json(); })
+        .then(function(groups) {
+            var sel = document.getElementById('assignGroup');
+            groups.forEach(function(g) {
+                var opt = document.createElement('option');
+                opt.value = g.id;
+                opt.text = g.name + ' (' + g.member_count + ' уч.)';
+                sel.appendChild(opt);
+            });
+        });
     })
     .catch(function(error) {
         container.innerHTML = '<div class="alert alert-danger">❌ ' + error.message + '</div>';
@@ -546,6 +560,21 @@ function deleteAdminGroup(id) {
     if (!confirm('Удалить группу?')) return;
     fetch('/groups/' + id, {method: 'DELETE', credentials: 'include'})
     .then(function(r) { if (r.ok) loadGroups(); else alert('Ошибка'); });
+}
+
+function assignVariant(variantId) {
+    var groupId = document.getElementById('assignGroup').value;
+    if (!groupId) { alert('Выберите группу'); return; }
+    if (!confirm('Выдать вариант всем участникам группы?')) return;
+
+    fetch('/variants/' + variantId + '/assign/' + groupId, {
+        method: 'POST', credentials: 'include'
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        alert(data.message);
+    })
+    .catch(function() { alert('Ошибка'); });
 }
 
 function createAdminGroup(e) {

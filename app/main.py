@@ -25,6 +25,13 @@ for col in ["last_name", "first_name", "patronymic"]:
 
 try:
     with engine.connect() as conn:
+        conn.execute(text("CREATE TABLE IF NOT EXISTS variant_assignments (id INTEGER PRIMARY KEY AUTOINCREMENT, variant_id INTEGER NOT NULL REFERENCES variants(id), student_id INTEGER NOT NULL REFERENCES users(id), assigned_by INTEGER NOT NULL REFERENCES users(id), assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, status VARCHAR(20) DEFAULT 'pending')"))
+        conn.commit()
+except Exception:
+    pass
+
+try:
+    with engine.connect() as conn:
         conn.execute(text("ALTER TABLE task_bank ADD COLUMN file_url VARCHAR(500)"))
         conn.commit()
 except Exception:
