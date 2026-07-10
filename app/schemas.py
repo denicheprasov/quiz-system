@@ -165,7 +165,7 @@ class VariantCreate(VariantBase):
 class VariantTaskResponse(BaseModel):
     id: int
     order_number: int
-    task: TaskBankResponse
+    task: Optional[TaskBankResponse] = None
 
     class Config:
         from_attributes = True
