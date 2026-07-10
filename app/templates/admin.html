@@ -124,6 +124,14 @@
 
                 <!-- Вкладка с группами -->
                 <div class="tab-pane fade" id="groups" role="tabpanel">
+                    <form onsubmit="createAdminGroup(event)" class="row g-2 mb-3">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="groupNameInput" placeholder="Название группы, например: 11А класс" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-success w-100">➕ Создать группу</button>
+                        </div>
+                    </form>
                     <div id="groupsList">
                         <div class="text-center">
                             <div class="spinner-border" role="status"></div>
@@ -493,6 +501,21 @@ function deleteAdminGroup(id) {
     if (!confirm('Удалить группу?')) return;
     fetch('/groups/' + id, {method: 'DELETE', credentials: 'include'})
     .then(function(r) { if (r.ok) loadGroups(); else alert('Ошибка'); });
+}
+
+function createAdminGroup(e) {
+    e.preventDefault();
+    var name = document.getElementById('groupNameInput').value;
+    if (!name) return;
+
+    var formData = new FormData();
+    formData.append('name', name);
+
+    fetch('/groups', {method: 'POST', credentials: 'include', body: formData})
+    .then(function(r) {
+        if (r.ok) { document.getElementById('groupNameInput').value = ''; loadGroups(); }
+        else { alert('Ошибка создания группы'); }
+    });
 }
 
 // Загружаем все данные
