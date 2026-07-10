@@ -434,6 +434,7 @@ function viewVariant(variantId) {
                 if (task) {
                     html += '<p>' + task.text.replace(/\n/g, '<br>') + '</p>';
                     if (task.image_url) html += '<img src="' + task.image_url + '" class="img-fluid rounded question-image mb-2">';
+                    if (task.file_url) html += '<p class="mt-2"><a href="' + task.file_url + '" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>';
                     html += '<p><strong>Ответ:</strong> ' + task.correct_answer + '</p>';
                 } else {
                     html += '<p class="text-muted">Задание не найдено в банке</p>';
