@@ -25,12 +25,6 @@ def register(
             raise HTTPException(status_code=400, detail="Username or email already registered")
 
         hashed_password = auth.get_password_hash(user_data.password)
-        is_teacher = user_data.is_teacher
-        if is_teacher:
-            teacher_exists = db.query(models.User).filter(models.User.is_teacher == True).first()
-            if teacher_exists:
-                is_teacher = False
-
         db_user = models.User(
             username=user_data.username,
             email=user_data.email,
@@ -38,7 +32,7 @@ def register(
             last_name=user_data.last_name,
             first_name=user_data.first_name,
             patronymic=user_data.patronymic,
-            is_teacher=is_teacher
+            is_teacher=user_data.is_teacher
         )
         db.add(db_user)
         db.commit()
