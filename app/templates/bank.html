@@ -263,7 +263,6 @@ function viewTask(taskId) {
         var html = '<div class="card">';
         html += '<div class="card-body">';
         html += '<h6>Задание №' + task.task_number + ' (ID: ' + task.id + ')</h6>';
-        html += '<p><strong>Источник:</strong> ' + (task.source_file || 'Не указан') + '</p>';
         html += '<hr>';
         html += '<p><strong>Текст:</strong></p>';
         html += '<div class="p-2 bg-light">' + task.text.replace(/\n/g, '<br>') + '</div>';

@@ -12,8 +12,8 @@
             <div class="card-body">
                 <form id="loginForm">
                     <div class="mb-3">
-                        <label class="form-label">Имя пользователя</label>
-                        <input type="text" class="form-control" id="username" placeholder="Введите имя пользователя" required>
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" placeholder="Введите email" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Пароль</label>
@@ -34,14 +34,14 @@
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     
     try {
         const response = await fetch('/auth/login', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({username: username, password: password})
+            body: JSON.stringify({username: email, password: password})
         });
         
         const result = await response.json();
