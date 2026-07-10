@@ -365,6 +365,11 @@ def delete_user(
     db.query(models.AssignedTest).filter(
         (models.AssignedTest.user_id == user_id) | (models.AssignedTest.assigned_by == user_id)
     ).delete(synchronize_session=False)
+    db.query(models.VariantTask).filter(
+        models.VariantTask.variant_id.in_(
+            db.query(models.Variant.id).filter(models.Variant.created_by == user_id)
+        )
+    ).delete(synchronize_session=False)
     db.query(models.Variant).filter(models.Variant.created_by == user_id).delete()
     db.query(models.Question).filter(
         models.Question.quiz_id.in_(
@@ -372,11 +377,6 @@ def delete_user(
         )
     ).delete(synchronize_session=False)
     db.query(models.Quiz).filter(models.Quiz.created_by == user_id).delete()
-    db.query(models.VariantTask).filter(
-        models.VariantTask.variant_id.in_(
-            db.query(models.Variant.id).filter(models.Variant.created_by == user_id)
-        )
-    ).delete(synchronize_session=False)
 
     db.delete(user)
     db.commit()
