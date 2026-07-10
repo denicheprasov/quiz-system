@@ -156,12 +156,13 @@ function loadStats() {
     });
     
     // Загружаем учеников
-    fetch('/student/api/students', {credentials: 'include'})
+    fetch('/users', {credentials: 'include'})
     .then(function(response) {
-        if (!response.ok) throw new Error('Ошибка загрузки учеников');
+        if (!response.ok) throw new Error('Ошибка загрузки пользователей');
         return response.json();
     })
-    .then(function(students) {
+    .then(function(users) {
+        var students = users.filter(function(u) { return !u.is_teacher; });
         document.getElementById('totalStudents').textContent = students.length;
     })
     .catch(function(error) {
@@ -275,33 +276,35 @@ function loadVariants() {
     });
 }
 
-// Функция загрузки учеников
+// Функция загрузки пользователей
 function loadStudents() {
     var container = document.getElementById('studentsList');
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
-    fetch('/student/api/students', {credentials: 'include'})
+    fetch('/users', {credentials: 'include'})
     .then(function(response) {
-        if (!response.ok) throw new Error('Ошибка загрузки учеников');
+        if (!response.ok) throw new Error('Ошибка загрузки пользователей');
         return response.json();
     })
-    .then(function(students) {
-        if (students.length === 0) {
-            container.innerHTML = '<div class="alert alert-info">👨‍🎓 Нет зарегистрированных учеников</div>';
+    .then(function(users) {
+        if (users.length === 0) {
+            container.innerHTML = '<div class="alert alert-info">👤 Нет зарегистрированных пользователей</div>';
             return;
         }
         
         var html = '<div class="table-responsive"><table class="table table-striped">';
-        html += '<thead><tr><th>#</th><th>Имя пользователя</th><th>Email</th><th>Дата регистрации</th></tr></thead>';
+        html += '<thead><tr><th>#</th><th>ФИО</th><th>Email</th><th>Роль</th><th>Дата</th><th></th></tr></thead>';
         html += '<tbody>';
         
-        for (var i = 0; i < students.length; i++) {
-            var s = students[i];
+        for (var i = 0; i < users.length; i++) {
+            var u = users[i];
             html += '<tr>';
-            html += '<td>' + (i + 1) + '</td>';
-            html += '<td>' + s.username + '</td>';
-            html += '<td>' + s.email + '</td>';
-            html += '<td>' + new Date(s.created_at).toLocaleDateString() + '</td>';
+            html += '<td>' + u.id + '</td>';
+            html += '<td>' + (u.display_name || u.username) + '</td>';
+            html += '<td>' + u.email + '</td>';
+            html += '<td>' + (u.is_teacher ? '<span class="badge bg-primary">Учитель</span>' : '<span class="badge bg-secondary">Ученик</span>') + '</td>';
+            html += '<td>' + new Date(u.created_at).toLocaleDateString() + '</td>';
+            html += '<td><button class="btn btn-danger btn-sm" onclick="deleteUser(' + u.id + ')">🗑️</button></td>';
             html += '</tr>';
         }
         
@@ -309,8 +312,28 @@ function loadStudents() {
         container.innerHTML = html;
     })
     .catch(function(error) {
-        container.innerHTML = '<div class="alert alert-danger">❌ Ошибка загрузки учеников: ' + error.message + '</div>';
+        container.innerHTML = '<div class="alert alert-danger">❌ Ошибка загрузки пользователей: ' + error.message + '</div>';
         console.error('Error:', error);
+    });
+}
+
+function deleteUser(userId) {
+    if (!confirm('Удалить пользователя? Все его данные будут безвозвратно удалены.')) return;
+    
+    fetch('/users/' + userId, {
+        method: 'DELETE',
+        credentials: 'include'
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('Ошибка удаления');
+        return response.json();
+    })
+    .then(function() {
+        loadStudents();
+        loadStats();
+    })
+    .catch(function(error) {
+        alert('Ошибка: ' + error.message);
     });
 }
 

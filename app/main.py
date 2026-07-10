@@ -315,6 +315,49 @@ def promote_to_teacher(
     return {"message": f"User '{username}' is now a teacher"}
 
 
+@app.get("/users")
+def list_users(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403)
+
+    users = db.query(models.User).order_by(models.User.created_at).all()
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "email": u.email,
+            "display_name": auth.get_display_name(u),
+            "is_teacher": u.is_teacher,
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+        }
+        for u in users
+    ]
+
+
+@app.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403)
+
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete yourself")
+
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404)
+
+    db.delete(user)
+    db.commit()
+    return {"message": "User deleted"}
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
