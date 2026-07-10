@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional
 from app import models, schemas, auth, database
 from app.services.variant_generator import VariantGenerator
