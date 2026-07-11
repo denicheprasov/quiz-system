@@ -469,9 +469,17 @@ def submit_variant(
 
     if assignment:
         assignment.status = "completed"
-        assignment.score = correct
-        assignment.total = total
-        db.commit()
+    else:
+        assignment = models.VariantAssignment(
+            variant_id=variant_id,
+            student_id=current_user.id,
+            assigned_by=current_user.id,
+            status="completed",
+        )
+        db.add(assignment)
+    assignment.score = correct
+    assignment.total = total
+    db.commit()
 
     return {"score": correct, "total": total, "results": results}
 
