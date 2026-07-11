@@ -36,10 +36,13 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
         .all()
     )
 
-    # Вирианты, назначенные учителем
+    # Вирианты, назначенные учителем (не сгенерированные самим учеником)
     variant_assignments = (
         db.query(models.VariantAssignment)
-        .filter(models.VariantAssignment.student_id == current_user.id)
+        .filter(
+            models.VariantAssignment.student_id == current_user.id,
+            models.VariantAssignment.assigned_by != current_user.id,
+        )
         .all()
     )
 
