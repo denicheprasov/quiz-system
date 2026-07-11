@@ -23,10 +23,13 @@ for col in ["last_name", "first_name", "patronymic"]:
     except Exception:
         pass
 
-for col in ["score", "total"]:
+for col in ["score", "total", "results"]:
     try:
         with engine.connect() as conn:
-            conn.execute(text(f"ALTER TABLE variant_assignments ADD COLUMN {col} INTEGER DEFAULT 0"))
+            if col == "results":
+                conn.execute(text("ALTER TABLE variant_assignments ADD COLUMN results JSON"))
+            else:
+                conn.execute(text(f"ALTER TABLE variant_assignments ADD COLUMN {col} INTEGER DEFAULT 0"))
             conn.commit()
     except Exception:
         pass

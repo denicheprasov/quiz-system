@@ -86,7 +86,7 @@ async function loadDashboard() {
         
         document.getElementById('totalAssigned').textContent = data.total_assigned || 0;
         document.getElementById('completedAssigned').textContent = data.completed_assigned || 0;
-        document.getElementById('totalPractice').textContent = data.practice_sessions ? data.practice_sessions.length : 0;
+        document.getElementById('totalPractice').textContent = data.unique_tasks_completed || 0;
         
         // Отображаем выданные тесты
         const container = document.getElementById('assignedTests');

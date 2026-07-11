@@ -46,6 +46,32 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
         .all()
     )
 
+    # Уникальные правильные задания (из тренировок и вариантов)
+    completed_task_ids = set()
+
+    correct_practice = db.query(models.PracticeTask).filter(
+        models.PracticeTask.is_correct == True,
+        models.PracticeTask.session_id.in_(
+            db.query(models.PracticeSession.id).filter(
+                models.PracticeSession.user_id == current_user.id
+            )
+        ),
+    ).all()
+    for pt in correct_practice:
+        completed_task_ids.add(pt.task_bank_id)
+
+    all_variant_results = db.query(models.VariantAssignment).filter(
+        models.VariantAssignment.student_id == current_user.id,
+        models.VariantAssignment.results.isnot(None),
+    ).all()
+    for va in all_variant_results:
+        if va.results:
+            for r in va.results:
+                if r.get("is_correct"):
+                    for vt in va.variant.variant_tasks:
+                        if vt.id == r.get("variant_task_id") and vt.task_bank_id:
+                            completed_task_ids.add(vt.task_bank_id)
+
     return {
         "assigned_tests": assigned,
         "variant_assignments": [
@@ -59,6 +85,7 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
             for va in variant_assignments
         ],
         "practice_sessions": practice_sessions,
+        "unique_tasks_completed": len(completed_task_ids),
         "total_assigned": len(assigned) + len([v for v in variant_assignments if v.status == "completed"]),
         "completed_assigned": len([a for a in assigned if a.status == "completed"]) + len([v for v in variant_assignments if v.status == "completed"]),
     }
@@ -482,6 +509,7 @@ def submit_variant(
         db.add(assignment)
     assignment.score = correct
     assignment.total = total
+    assignment.results = results
     db.commit()
 
     return {"score": correct, "total": total, "results": results}
