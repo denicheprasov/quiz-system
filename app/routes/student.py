@@ -56,8 +56,8 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
             for va in variant_assignments
         ],
         "practice_sessions": practice_sessions,
-        "total_assigned": len(assigned) + len(variant_assignments),
-        "completed_assigned": len([a for a in assigned if a.status == "completed"]),
+        "total_assigned": len(assigned) + len([v for v in variant_assignments if v.status == "completed"]),
+        "completed_assigned": len([a for a in assigned if a.status == "completed"]) + len([v for v in variant_assignments if v.status == "completed"]),
     }
 
 
