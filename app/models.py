@@ -230,6 +230,7 @@ class VariantAssignment(Base):
     status = Column(String(20), default="pending")
     score = Column(Integer, default=0)
     total = Column(Integer, default=0)
+    results = Column(JSON, nullable=True)
 
     variant = relationship("Variant")
     student = relationship("User", foreign_keys=[student_id])
