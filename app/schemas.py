@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, List, Dict, Any
+from pydantic import BaseModel, Field, EmailStr
+from typing import List, Optional, Dict
 from datetime import datetime
 from enum import Enum
 
@@ -204,7 +204,7 @@ class PracticeSessionResponse(BaseModel):
     correct_answers: int
     started_at: datetime
     completed_at: Optional[datetime]
-    tasks: List[PracticeTaskResponse] = []
+    tasks: List[PracticeTaskResponse] = Field(default=[], validation_alias="practice_tasks")
 
     class Config:
         from_attributes = True
