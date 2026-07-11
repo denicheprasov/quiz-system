@@ -107,7 +107,7 @@ document.getElementById('startForm').addEventListener('submit', async function(e
     document.getElementById('practiceScreen').style.display = 'block';
     
     try {
-        const response = await fetch('/student/practice/start', {
+        const response = await fetch('/student/api/practice/start', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -194,7 +194,7 @@ async function submitAnswer(taskId) {
     }
     
     try {
-        const response = await fetch(`/student/practice/${sessionId}/answer`, {
+        const response = await fetch(`/student/api/practice/${sessionId}/answer`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
