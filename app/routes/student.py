@@ -234,8 +234,8 @@ def start_practice_api(
         db.add(practice_task)
 
     db.commit()
-    db.refresh(session)
 
+    session = db.query(models.PracticeSession).filter(models.PracticeSession.id == session.id).first()
     return session
 
 
