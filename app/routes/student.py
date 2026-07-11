@@ -72,6 +72,16 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
                         if vt.id == r.get("variant_task_id") and vt.task_bank_id:
                             completed_task_ids.add(vt.task_bank_id)
 
+    # Все завершённые варианты (для счётчика, включая сгенерированные самим учеником)
+    all_completed_variants = (
+        db.query(models.VariantAssignment)
+        .filter(
+            models.VariantAssignment.student_id == current_user.id,
+            models.VariantAssignment.status == "completed",
+        )
+        .count()
+    )
+
     return {
         "assigned_tests": assigned,
         "variant_assignments": [
@@ -87,8 +97,8 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
         "practice_sessions": practice_sessions,
         "unique_tasks_completed": len(completed_task_ids),
         "total_practice_completed": len([s for s in practice_sessions if s.completed_at]),
-        "total_assigned": len(assigned) + len([v for v in variant_assignments if v.status == "completed"]),
-        "completed_assigned": len([a for a in assigned if a.status == "completed"]) + len([v for v in variant_assignments if v.status == "completed"]),
+        "total_assigned": len(assigned) + all_completed_variants,
+        "completed_assigned": len([a for a in assigned if a.status == "completed"]) + all_completed_variants,
     }
 
 
