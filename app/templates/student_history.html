@@ -10,10 +10,9 @@
                 <h4 class="mb-0">📜 История</h4>
             </div>
             <div class="card-body">
-                <div class="mb-3">
-                    <button class="btn btn-success" onclick="loadHistory()">
-                        🔄 Обновить
-                    </button>
+                <div class="mb-3 d-flex justify-content-between">
+                    <button class="btn btn-success" onclick="loadHistory()">🔄 Обновить</button>
+                    <button class="btn btn-outline-danger" onclick="clearHistory()">🗑 Очистить историю</button>
                 </div>
                 <div id="historyList">
                     <div class="text-center text-muted py-4">
@@ -80,5 +79,17 @@ async function loadHistory() {
 }
 
 loadHistory();
+
+async function clearHistory() {
+    if (!confirm('Удалить всю историю тренировок и пройденных вариантов?')) return;
+    if (!confirm('Точно уверены? Это действие нельзя отменить.')) return;
+
+    const r = await fetch('/student/api/clear-history', {method: 'DELETE', credentials: 'include'});
+    if (r.ok) {
+        loadHistory();
+    } else {
+        alert('Ошибка очистки истории');
+    }
+}
 </script>
 {% endblock %}

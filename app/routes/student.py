@@ -267,6 +267,29 @@ def get_practice_history_api(request: Request, db: Session = Depends(database.ge
     }
 
 
+@router.delete("/api/clear-history")
+def clear_history_api(request: Request, db: Session = Depends(database.get_db)):
+    current_user = get_user_from_request(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401)
+
+    db.query(models.PracticeTask).filter(
+        models.PracticeTask.session_id.in_(
+            db.query(models.PracticeSession.id).filter(
+                models.PracticeSession.user_id == current_user.id
+            )
+        )
+    ).delete(synchronize_session=False)
+    db.query(models.PracticeSession).filter(
+        models.PracticeSession.user_id == current_user.id
+    ).delete(synchronize_session=False)
+    db.query(models.VariantAssignment).filter(
+        models.VariantAssignment.student_id == current_user.id
+    ).delete(synchronize_session=False)
+    db.commit()
+    return {"message": "History cleared"}
+
+
 @router.get(
     "/api/practice/{session_id}", response_model=schemas.PracticeSessionResponse
 )
