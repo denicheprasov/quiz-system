@@ -19,14 +19,12 @@
                     
                     <form id="startForm">
                         <div class="mb-3">
-                            <label class="form-label">Номера заданий</label>
-                            <select class="form-select" id="taskNumbers">
+                            <label class="form-label">Номер задания</label>
+                            <select class="form-select" id="taskNumber">
                                 <option value="">Все номера</option>
-                                <option value="1-5">1-5</option>
-                                <option value="6-10">6-10</option>
-                                <option value="11-15">11-15</option>
-                                <option value="16-20">16-20</option>
-                                <option value="21-27">21-27</option>
+                                {% for i in range(1, 28) %}
+                                <option value="{{ i }}">{{ i }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="mb-3">
@@ -100,17 +98,10 @@ document.getElementById('startForm').addEventListener('submit', async function(e
     e.preventDefault();
     
     const count = parseInt(document.getElementById('taskCount').value);
-    const numbersSelect = document.getElementById('taskNumbers').value;
+    const numberVal = document.getElementById('taskNumber').value;
     let taskNumbers = null;
-    
-    if (numbersSelect) {
-        const parts = numbersSelect.split('-');
-        if (parts.length === 2) {
-            taskNumbers = [];
-            for (let i = parseInt(parts[0]); i <= parseInt(parts[1]); i++) {
-                taskNumbers.push(i);
-            }
-        }
+    if (numberVal) {
+        taskNumbers = [parseInt(numberVal)];
     }
     
     const data = {
