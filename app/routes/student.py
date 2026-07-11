@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Body
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 import random
 from datetime import datetime
@@ -235,7 +235,9 @@ def start_practice_api(
 
     db.commit()
 
-    session = db.query(models.PracticeSession).filter(models.PracticeSession.id == session.id).first()
+    session = db.query(models.PracticeSession).options(
+        joinedload(models.PracticeSession.practice_tasks)
+    ).filter(models.PracticeSession.id == session.id).first()
     return session
 
 
