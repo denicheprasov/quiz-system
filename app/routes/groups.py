@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app import models, database, auth
+from app.auth import get_user_from_request, get_display_name
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 templates = Jinja2Templates(directory="app/templates")
@@ -109,7 +110,12 @@ def get_members(
     if not group:
         raise HTTPException(status_code=404)
 
-    if not current_user.is_teacher and group.created_by != current_user.id:
+    is_member = db.query(models.GroupMember).filter(
+        models.GroupMember.group_id == group_id,
+        models.GroupMember.student_id == current_user.id,
+    ).first()
+
+    if not current_user.is_teacher and not is_member and group.created_by != current_user.id:
         raise HTTPException(status_code=403)
 
     return [
@@ -173,3 +179,52 @@ async def join_page(request: Request, code: str, db: Session = Depends(database.
         "request": request, "user": user,
         "invite_code": code, "group_name": group.name,
     })
+
+
+@router.get("/{group_id}/view", response_class=HTMLResponse)
+async def group_view_page(request: Request, group_id: int, db: Session = Depends(database.get_db)):
+    user = auth.get_user_from_request(request, db)
+    if not user:
+        return RedirectResponse(url="/login")
+
+    group = db.query(models.StudentGroup).filter(models.StudentGroup.id == group_id).first()
+    if not group:
+        return templates.TemplateResponse("group_view.html", {
+            "request": request, "user": user, "error": "Группа не найдена"
+        })
+
+    return templates.TemplateResponse("group_view.html", {
+        "request": request, "user": user,
+        "group_id": group.id, "group_name": group.name,
+    })
+
+
+@router.get("/{group_id}/api/variants")
+def get_group_variants(
+    group_id: int,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    member_ids = [
+        m.student_id for m in db.query(models.GroupMember).filter(
+            models.GroupMember.group_id == group_id
+        ).all()
+    ]
+
+    assignments = db.query(models.VariantAssignment).filter(
+        models.VariantAssignment.student_id.in_(member_ids)
+    ).order_by(models.VariantAssignment.assigned_at.desc()).all()
+
+    seen = {}
+    for a in assignments:
+        key = a.variant_id
+        if key not in seen:
+            variant = db.query(models.Variant).filter(models.Variant.id == a.variant_id).first()
+            seen[key] = {
+                "variant_id": a.variant_id,
+                "title": variant.title if variant else "Вариант",
+                "assigned_at": a.assigned_at.isoformat() if a.assigned_at else None,
+                "student_count": len([x for x in assignments if x.variant_id == a.variant_id]),
+            }
+
+    return list(seen.values())

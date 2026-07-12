@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header gradient d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">👥 {{ group_name or 'Группа' }}</h4>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+                {% else %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">👨‍🎓 Участники</h5>
+                            </div>
+                            <div class="card-body" id="membersList">
+                                <div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">📋 Выданные варианты</h5>
+                            </div>
+                            <div class="card-body" id="variantsList">
+                                <div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadMembers() {
+    const r = await fetch('/groups/{{ group_id }}/members', {credentials: 'include'});
+    if (!r.ok) { document.getElementById('membersList').innerHTML = '<div class="text-danger">Ошибка</div>'; return; }
+    const members = await r.json();
+    if (members.length === 0) {
+        document.getElementById('membersList').innerHTML = '<div class="text-muted">Нет участников</div>';
+        return;
+    }
+    document.getElementById('membersList').innerHTML = '<ul class="list-group">' +
+        members.map(function(m) { return '<li class="list-group-item">' + (m.display_name || m.username) + '</li>'; }).join('') +
+        '</ul>';
+}
+
+async function loadVariants() {
+    const r = await fetch('/groups/{{ group_id }}/api/variants', {credentials: 'include'});
+    if (!r.ok) { document.getElementById('variantsList').innerHTML = '<div class="text-danger">Ошибка</div>'; return; }
+    const variants = await r.json();
+    if (variants.length === 0) {
+        document.getElementById('variantsList').innerHTML = '<div class="text-muted">Варианты не выдавались</div>';
+        return;
+    }
+    document.getElementById('variantsList').innerHTML = '<div class="list-group">' +
+        variants.map(function(v) {
+            return '<a href="/student/variant/' + v.variant_id + '" class="list-group-item list-group-item-action">' +
+                '<strong>' + v.title + '</strong><br>' +
+                '<small class="text-muted">Выдан ' + v.student_count + ' уч. — ' + new Date(v.assigned_at).toLocaleDateString() + '</small>' +
+                '</a>';
+        }).join('') +
+        '</div>';
+}
+
+loadMembers();
+loadVariants();
+</script>
+{% endblock %}
