@@ -180,7 +180,9 @@ def delete_variant(
     
     if not current_user.is_teacher and variant.created_by != current_user.id:
         raise HTTPException(status_code=403, detail="Only teachers or the creator can delete this variant")
-    
+
+    db.query(models.VariantTask).filter(models.VariantTask.variant_id == variant_id).delete()
+    db.query(models.VariantAssignment).filter(models.VariantAssignment.variant_id == variant_id).delete()
     db.delete(variant)
     db.commit()
     return {"message": "Variant deleted successfully"}
