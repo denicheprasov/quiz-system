@@ -174,12 +174,12 @@ def delete_variant(
     current_user: models.User = Depends(auth.get_current_user)
 ):
     """Удалить вариант"""
-    if not current_user.is_teacher:
-        raise HTTPException(status_code=403, detail="Only teachers can delete variants")
-    
     variant = db.query(models.Variant).filter(models.Variant.id == variant_id).first()
     if not variant:
         raise HTTPException(status_code=404, detail="Variant not found")
+    
+    if not current_user.is_teacher and variant.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Only teachers or the creator can delete this variant")
     
     db.delete(variant)
     db.commit()
