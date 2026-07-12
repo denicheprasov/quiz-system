@@ -1,10 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
-from datetime import datetime
 from app import models, schemas, auth, database
-from app.services.import_service import ImportService
 from app.services.kpolyakov_parser import KpolyakovParser
 
 router = APIRouter(prefix="/bank", tags=["bank"])
@@ -81,77 +79,6 @@ def get_task_numbers(
     )
 
     return [r[0] for r in result]
-
-
-@router.post("/import")
-def import_tasks(
-    file: UploadFile = File(...),
-    task_number: int = Form(...),
-    db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_user),
-):
-    """Импорт заданий из TXT файла с указанием номера задания"""
-    if not current_user.is_teacher:
-        raise HTTPException(status_code=403, detail="Only teachers can import tasks")
-
-    if not file.filename.endswith(".txt") and not file.filename.endswith(".zip"):
-        raise HTTPException(status_code=400, detail="Only .txt and .zip files are supported")
-
-    if task_number < 1 or task_number > 27:
-        raise HTTPException(
-            status_code=400, detail="Task number must be between 1 and 27"
-        )
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{timestamp}_{task_number}_{file.filename}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
-
-    try:
-        # Сохраняем файл
-        content = file.file.read()
-        with open(file_path, "wb") as buffer:
-            buffer.write(content)
-
-        # Проверяем, что файл не пустой
-        if os.path.getsize(file_path) == 0:
-            return {
-                "total": 0,
-                "imported": 0,
-                "skipped": 0,
-                "errors": ["Файл пустой"],
-                "tasks": [],
-            }
-
-        import_service = ImportService()
-
-        if file.filename.endswith(".zip"):
-            result = import_service.import_from_zip(file_path, file.filename, task_number)
-        else:
-            result = import_service.import_from_txt(file_path, file.filename, task_number)
-
-        # Удаляем временный файл
-        try:
-            os.remove(file_path)
-        except:
-            pass
-
-        return result
-
-    except Exception as e:
-        # Удаляем временный файл в случае ошибки
-        try:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-        except:
-            pass
-
-        return {
-            "total": 0,
-            "imported": 0,
-            "skipped": 0,
-            "errors": [str(e)],
-            "tasks": [],
-        }
 
 
 @router.post("/import-url")
