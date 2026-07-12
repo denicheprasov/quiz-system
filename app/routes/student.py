@@ -82,6 +82,20 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
         .count()
     )
 
+    # Группы ученика
+    memberships = db.query(models.GroupMember).filter(
+        models.GroupMember.student_id == current_user.id
+    ).all()
+    student_groups = []
+    for m in memberships:
+        g = m.group
+        if g:
+            student_groups.append({
+                "id": g.id,
+                "name": g.name,
+                "invite_code": g.invite_code,
+            })
+
     return {
         "assigned_tests": assigned,
         "variant_assignments": [
@@ -95,6 +109,7 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
             for va in variant_assignments
         ],
         "practice_sessions": practice_sessions,
+        "student_groups": student_groups,
         "unique_tasks_completed": len(completed_task_ids),
         "total_practice_completed": len([s for s in practice_sessions if s.completed_at]),
         "total_assigned": len(assigned) + all_completed_variants,
