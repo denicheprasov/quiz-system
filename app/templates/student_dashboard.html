@@ -149,7 +149,7 @@ async function loadDashboard() {
         const groupContainer = document.getElementById('studentGroups');
         if (data.student_groups && data.student_groups.length > 0) {
             groupContainer.innerHTML = data.student_groups.map(function(g) {
-                return '<div class="mb-1">👥 <a href="/groups/join/' + g.invite_code + '" class="text-decoration-none">' + g.name + '</a></div>';
+                return '<div class="mb-1">👥 <a href="/groups/' + g.id + '/view" class="text-decoration-none fw-bold">' + g.name + '</a></div>';
             }).join('');
         } else {
             groupContainer.innerHTML = '<div class="text-muted small">Вы не состоите в группах</div>';
