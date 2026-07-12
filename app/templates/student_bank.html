@@ -173,8 +173,6 @@ function viewTask(taskId) {
                     <hr>
                     <p>${task.text.replace(/\n/g, '<br>')}</p>
                     ${task.image_url ? `<img src="${task.image_url}" class="img-fluid rounded mb-2 question-image">` : ''}
-                    <p class="text-muted"><strong>Правильный ответ:</strong> ${task.correct_answer}</p>
-                    <p class="text-muted"><strong>Баллов:</strong> ${task.points}</p>
                     <a href="/student/practice" class="btn btn-primary">Начать тренировку</a>
                 </div>
             </div>
