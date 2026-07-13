@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
+from datetime import datetime, date
 from app import models, schemas, auth, database
 from app.services.variant_generator import VariantGenerator
 
@@ -135,6 +136,7 @@ def get_variant(
 def assign_variant_to_group(
     variant_id: int,
     group_id: int,
+    due_date: Optional[str] = Form(None),
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
@@ -154,6 +156,13 @@ def assign_variant_to_group(
     if not members:
         raise HTTPException(status_code=400, detail="Group has no members")
 
+    parsed_date = None
+    if due_date:
+        try:
+            parsed_date = datetime.strptime(due_date, "%Y-%m-%d")
+        except:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+
     assigned = 0
     for member in members:
         existing = db.query(models.VariantAssignment).filter(
@@ -166,6 +175,7 @@ def assign_variant_to_group(
             variant_id=variant_id,
             student_id=member.student_id,
             assigned_by=user.id,
+            due_date=parsed_date,
         )
         db.add(assignment)
         assigned += 1

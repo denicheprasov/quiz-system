@@ -108,6 +108,7 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
                 "variant_title": va.variant.title if va.variant else "Вариант",
                 "status": va.status,
                 "assigned_at": va.assigned_at.isoformat() if va.assigned_at else None,
+                "due_date": va.due_date.isoformat() if va.due_date else None,
             }
             for va in variant_assignments
         ],

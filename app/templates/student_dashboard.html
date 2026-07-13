@@ -103,7 +103,13 @@ async function loadDashboard() {
                 html += '<div class="card h-100">';
                 html += '<div class="card-body">';
                 html += '<h5 class="card-title">' + (va.variant_title || 'Вариант') + '</h5>';
-                html += '<p class="card-text text-muted small">Выдан: ' + new Date(va.assigned_at).toLocaleDateString() + '</p>';
+                html += '<p class="card-text text-muted small">Выдан: ' + new Date(va.assigned_at).toLocaleDateString();
+                if (va.due_date) {
+                    var due = new Date(va.due_date);
+                    var isOverdue = due < new Date();
+                    html += '<br><span class="' + (isOverdue ? 'text-danger fw-bold' : '') + '">⏳ Дедлайн: ' + due.toLocaleDateString() + (isOverdue ? ' (просрочено!)' : '') + '</span>';
+                }
+                html += '</p>';
                 html += '<a href="/student/variant/' + va.variant_id + '" class="btn btn-success w-100">📋 Пройти вариант</a>';
                 html += '</div></div></div>';
             });

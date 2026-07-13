@@ -231,6 +231,7 @@ class VariantAssignment(Base):
     score = Column(Integer, default=0)
     total = Column(Integer, default=0)
     results = Column(JSON, nullable=True)
+    due_date = Column(DateTime, nullable=True)
 
     variant = relationship("Variant")
     student = relationship("User", foreign_keys=[student_id])

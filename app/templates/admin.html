@@ -238,6 +238,8 @@ function viewVariant(variantId) {
         var html = '<h5>' + variant.title + '</h5>';
         if (variant.description) html += '<p class="text-muted">' + variant.description + '</p>';
         html += '<div class="mb-3"><select id="assignGroup" class="form-select"><option value="">Выдать группе...</option></select>';
+        html += '<div class="mt-1"><label class="small text-muted">Дедлайн (опционально):</label>';
+        html += '<input type="date" id="assignDueDate" class="form-control form-control-sm"></div>';
         html += '<button class="btn btn-primary btn-sm mt-1" onclick="assignVariant(' + variant.id + ')">📤 Выдать</button></div>';
         html += '<hr><div class="accordion" id="variantAccordion">';
 
@@ -355,8 +357,12 @@ function assignVariant(variantId) {
     if (!groupId) { alert('Выберите группу'); return; }
     if (!confirm('Выдать вариант всем участникам группы?')) return;
 
+    var dueDate = document.getElementById('assignDueDate').value;
+    var formData = new FormData();
+    if (dueDate) formData.append('due_date', dueDate);
+
     fetch('/variants/' + variantId + '/assign/' + groupId, {
-        method: 'POST', credentials: 'include'
+        method: 'POST', credentials: 'include', body: formData
     })
     .then(function(r) {
         if (!r.ok) { return r.json().then(function(d) { throw new Error(d.detail || 'Ошибка'); }); }
