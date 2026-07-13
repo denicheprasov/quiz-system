@@ -45,7 +45,7 @@ def greeting(user) -> str:
         return f"Доброй ночи, {name}!"
     elif hour < 12:
         return f"Доброе утро, {name}!"
-    elif hour < 18:
+    elif hour < 17:
         return f"Добрый день, {name}!"
     else:
         return f"Добрый вечер, {name}!"
