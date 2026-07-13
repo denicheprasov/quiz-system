@@ -8,7 +8,7 @@ from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
 from app.database import engine, Base, get_db
 from app.routes import auth, quizzes, bank, variants, student, groups
-from app.auth import get_current_user, get_user_from_request, get_display_name
+from app.auth import get_current_user, get_user_from_request, get_display_name, greeting
 from app import models
 from sqlalchemy.orm import Session
 import os
@@ -61,6 +61,7 @@ templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["display_name"] = lambda u: (
     " ".join(p for p in [u.last_name or "", u.first_name or "", u.patronymic or ""] if p).strip() or u.username
 )
+templates.env.globals["greeting"] = greeting
 
 ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS",

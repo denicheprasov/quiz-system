@@ -10,6 +10,7 @@ from app.auth import get_user_from_request, get_display_name
 router = APIRouter(prefix="/groups", tags=["groups"])
 templates = Jinja2Templates(directory="app/templates")
 templates.env.globals["display_name"] = auth.get_display_name
+templates.env.globals["greeting"] = auth.greeting
 
 
 def _generate_code(length=8):

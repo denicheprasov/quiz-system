@@ -33,6 +33,24 @@ def get_display_name(user) -> str:
     return full.strip() or user.username
 
 
+def get_first_name(user) -> str:
+    return user.first_name or user.username
+
+
+def greeting(user) -> str:
+    from datetime import datetime
+    hour = datetime.now().hour
+    name = get_first_name(user)
+    if hour < 6:
+        return f"Доброй ночи, {name}!"
+    elif hour < 12:
+        return f"Доброе утро, {name}!"
+    elif hour < 18:
+        return f"Добрый день, {name}!"
+    else:
+        return f"Добрый вечер, {name}!"
+
+
 def authenticate_user(db: Session, username: str, password: str):
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
