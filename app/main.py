@@ -139,23 +139,10 @@ async def dashboard_redirect(request: Request, db: Session = Depends(get_db)):
 
     if user.is_teacher:
         return RedirectResponse(url="/teacher/dashboard")
-    else:
-        return RedirectResponse(url="/student/dashboard")
-
-
-# ===== СТРАНИЦЫ ДЛЯ УЧИТЕЛЯ =====
-
 
 @app.get("/teacher/dashboard", response_class=HTMLResponse)
 async def teacher_dashboard(request: Request, db: Session = Depends(get_db)):
-    user = get_user_from_request(request, db)
-
-    if not user or not user.is_teacher:
-        return RedirectResponse(url="/login")
-
-    return templates.TemplateResponse(
-        "teacher_dashboard.html", {"request": request, "user": user}
-    )
+    return RedirectResponse(url="/admin")
 
 
 @app.get("/admin", response_class=HTMLResponse)
