@@ -479,6 +479,81 @@ def get_practice_history_api(request: Request, db: Session = Depends(database.ge
     }
 
 
+@router.get("/api/task-history")
+def get_task_history_api(request: Request, db: Session = Depends(database.get_db)):
+    """API: Получить историю отдельных заданий из тренировок и вариантов"""
+    current_user = get_user_from_request(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    items = []
+
+    # Задания из тренировок
+    practice_tasks = (
+        db.query(models.PracticeTask)
+        .join(models.PracticeSession)
+        .filter(models.PracticeSession.user_id == current_user.id)
+        .order_by(models.PracticeTask.answered_at.desc())
+        .all()
+    )
+
+    seen_bank_ids = set()
+    for pt in practice_tasks:
+        if not pt.answered_at:
+            continue
+        task = db.query(models.TaskBank).filter(models.TaskBank.id == pt.task_bank_id).first()
+        seen_bank_ids.add(pt.task_bank_id)
+        items.append({
+            "text": task.text[:100] + "..." if task and task.text else "Задание",
+            "task_number": task.task_number if task else "?",
+            "user_answer": pt.user_answer or "",
+            "correct_answer": task.correct_answer if task else "?",
+            "is_correct": pt.is_correct,
+            "date": pt.answered_at.isoformat() if pt.answered_at else None,
+            "source": "Тренировка",
+        })
+
+    # Задания из вариантов
+    variant_assignments = (
+        db.query(models.VariantAssignment)
+        .filter(
+            models.VariantAssignment.student_id == current_user.id,
+            models.VariantAssignment.status == "completed",
+            models.VariantAssignment.results.isnot(None),
+        )
+        .all()
+    )
+
+    for va in variant_assignments:
+        if not va.results:
+            continue
+        for r in va.results:
+            task_id = r.get("variant_task_id")
+            if not task_id:
+                continue
+            vt = db.query(models.VariantTask).filter(models.VariantTask.id == task_id).first()
+            if not vt:
+                continue
+            task = vt.task
+            bank_id = vt.task_bank_id
+            if bank_id in seen_bank_ids:
+                continue
+            seen_bank_ids.add(bank_id)
+            items.append({
+                "text": task.text[:100] + "..." if task and task.text else "Задание",
+                "task_number": task.task_number if task else "?",
+                "user_answer": r.get("user_answer", ""),
+                "correct_answer": r.get("correct_answer", "?"),
+                "is_correct": r.get("is_correct", False),
+                "date": va.assigned_at.isoformat() if va.assigned_at else None,
+                "source": "Вариант",
+            })
+
+    items.sort(key=lambda x: x["date"] or "", reverse=True)
+
+    return items
+
+
 @router.post("/api/generate-variant")
 def generate_student_variant_api(
     request: Request,
