@@ -13,7 +13,7 @@ from app import models
 from sqlalchemy.orm import Session
 import os
 
-from sqlalchemy import text
+from sqlalchemy import text, func
 
 for col in ["last_name", "first_name", "patronymic"]:
     try:
@@ -146,6 +146,96 @@ async def dashboard_redirect(request: Request, db: Session = Depends(get_db)):
 @app.get("/teacher/dashboard", response_class=HTMLResponse)
 async def teacher_dashboard(request: Request, db: Session = Depends(get_db)):
     return RedirectResponse(url="/admin")
+
+
+@app.get("/teacher/stats", response_class=HTMLResponse)
+async def teacher_stats_page(request: Request, db: Session = Depends(get_db)):
+    user = get_user_from_request(request, db)
+    if not user or not user.is_teacher:
+        return RedirectResponse(url="/login")
+    return templates.TemplateResponse("teacher_stats.html", {"request": request, "user": user})
+
+
+@app.get("/api/teacher/stats")
+def get_teacher_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403)
+
+    # Статистика по номерам заданий (самые сложные)
+    practice_tasks = db.query(models.PracticeTask).filter(
+        models.PracticeTask.answered_at.isnot(None)
+    ).all()
+
+    task_numbers = {}
+    for pt in practice_tasks:
+        bank_task = db.query(models.TaskBank).filter(models.TaskBank.id == pt.task_bank_id).first()
+        if bank_task:
+            num = bank_task.task_number
+            if num not in task_numbers:
+                task_numbers[num] = {"total": 0, "correct": 0}
+            task_numbers[num]["total"] += 1
+            if pt.is_correct:
+                task_numbers[num]["correct"] += 1
+
+    # Статистика по вариантам (средний балл)
+    variant_stats_raw = db.query(
+        models.VariantAssignment.student_id,
+        models.VariantAssignment.score,
+        models.VariantAssignment.total,
+    ).filter(
+        models.VariantAssignment.status == "completed",
+        models.VariantAssignment.total > 0,
+    ).all()
+
+    variant_scores = [{"score": v.score, "total": v.total, "percent": round(v.score / v.total * 100)} for v in variant_stats_raw]
+
+    avg_variant_percent = round(sum(v["percent"] for v in variant_scores) / len(variant_scores)) if variant_scores else 0
+
+    # Статистика по ученикам
+    students_raw = db.query(models.User).filter(models.User.is_teacher == False).all()
+    students = []
+    for s in students_raw:
+        var_assignments = db.query(models.VariantAssignment).filter(
+            models.VariantAssignment.student_id == s.id,
+            models.VariantAssignment.status == "completed",
+            models.VariantAssignment.total > 0,
+        ).all()
+        if var_assignments:
+            avg = round(sum(va.score / va.total * 100 for va in var_assignments) / len(var_assignments))
+        else:
+            avg = 0
+        practice_correct = db.query(models.PracticeTask).filter(
+            models.PracticeTask.is_correct == True,
+            models.PracticeTask.session_id.in_(
+                db.query(models.PracticeSession.id).filter(
+                    models.PracticeSession.user_id == s.id
+                )
+            ),
+        ).count()
+        students.append({
+            "id": s.id,
+            "display_name": get_display_name(s),
+            "avg_percent": avg,
+            "variants_done": len(var_assignments),
+            "practice_correct": practice_correct,
+        })
+
+    students.sort(key=lambda x: x["avg_percent"], reverse=True)
+
+    return {
+        "task_difficulty": [
+            {"number": k, "total": v["total"], "correct": v["correct"], "percent": round(v["correct"] / v["total"] * 100) if v["total"] else 0}
+            for k, v in sorted(task_numbers.items())
+        ],
+        "variant_scores": variant_scores,
+        "avg_variant_percent": avg_variant_percent,
+        "students": students,
+        "total_students": len(students_raw),
+        "total_variants_completed": len(variant_scores),
+    }
 
 
 @app.get("/admin", response_class=HTMLResponse)
