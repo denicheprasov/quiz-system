@@ -175,6 +175,7 @@ class VariantResponse(VariantBase):
     id: int
     created_by: int
     created_by_name: Optional[str] = None
+    assigned_groups: List[str] = []  # названия групп, которым выдан вариант
     created_at: datetime
     is_active: bool
     variant_tasks: List[VariantTaskResponse] = []

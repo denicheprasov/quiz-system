@@ -137,6 +137,22 @@ def get_variants(
         creator = db.query(models.User).filter(models.User.id == v.created_by).first()
         r = schemas.VariantResponse.model_validate(v)
         r.created_by_name = auth.get_display_name(creator) if creator else "Неизвестно"
+
+        assign_student_ids = [
+            a.student_id for a in db.query(models.VariantAssignment).filter(
+                models.VariantAssignment.variant_id == v.id
+            ).all()
+        ]
+        group_names = set()
+        if assign_student_ids:
+            memberships = db.query(models.GroupMember).filter(
+                models.GroupMember.student_id.in_(assign_student_ids)
+            ).all()
+            for m in memberships:
+                if m.group:
+                    group_names.add(m.group.name)
+        r.assigned_groups = sorted(group_names)
+
         result.append(r)
     return result
 
