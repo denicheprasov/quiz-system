@@ -63,7 +63,7 @@
 
                 <hr>
 
-                <h5>📋 Назначенные варианты</h5>
+                <h5>📋 Выданные варианты</h5>
                 <div id="assignedTests">
                     <div class="text-center">
                         <div class="spinner-border" role="status"></div>
@@ -92,20 +92,20 @@ async function loadDashboard() {
         document.getElementById('completedAssigned').textContent = data.unique_tasks_completed || 0;
         document.getElementById('totalPractice').textContent = data.total_practice_completed || 0;
 
-        // Отображаем назначенные варианты и тесты
+        // Отображаем выданные варианты (только ожидающие)
         const container = document.getElementById('assignedTests');
         let html = '';
 
         if (data.variant_assignments && data.variant_assignments.length > 0) {
-            html += '<div class="list-group mb-3">';
+            html += '<div class="row">';
             data.variant_assignments.forEach(function(va) {
-                html += '<a href="/student/variant/' + va.variant_id + '" class="list-group-item list-group-item-action">';
-                html += '<div class="d-flex w-100 justify-content-between">';
-                html += '<h6 class="mb-1">' + (va.variant_title || 'Вариант') + '</h6>';
-                html += '<small>' + (va.status === 'pending' ? '⏳ Ожидает' : '✅ Завершен') + '</small>';
-                html += '</div>';
-                html += '<small class="text-muted">Выдан: ' + new Date(va.assigned_at).toLocaleDateString() + '</small>';
-                html += '</a>';
+                html += '<div class="col-md-4 mb-3">';
+                html += '<div class="card h-100">';
+                html += '<div class="card-body">';
+                html += '<h5 class="card-title">' + (va.variant_title || 'Вариант') + '</h5>';
+                html += '<p class="card-text text-muted small">Выдан: ' + new Date(va.assigned_at).toLocaleDateString() + '</p>';
+                html += '<a href="/student/variant/' + va.variant_id + '" class="btn btn-success w-100">📋 Пройти вариант</a>';
+                html += '</div></div></div>';
             });
             html += '</div>';
         }
@@ -126,7 +126,7 @@ async function loadDashboard() {
         }
 
         if (!html) {
-            html = '<div class="alert alert-info">📭 Нет назначенных заданий</div>';
+            html = '<div class="alert alert-info">📭 Нет выданных вариантов</div>';
         }
         container.innerHTML = html;
 
