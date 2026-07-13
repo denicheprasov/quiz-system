@@ -174,6 +174,7 @@ class VariantTaskResponse(BaseModel):
 class VariantResponse(VariantBase):
     id: int
     created_by: int
+    created_by_name: Optional[str] = None
     created_at: datetime
     is_active: bool
     variant_tasks: List[VariantTaskResponse] = []

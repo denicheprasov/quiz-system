@@ -140,6 +140,7 @@ function loadVariants() {
             html += '<div class="card-body">';
             html += '<h5 class="card-title">' + v.title + '</h5>';
             html += '<p class="card-text">' + (v.description || 'Описание отсутствует') + '</p>';
+            html += '<p class="text-muted small mb-1">Создал: ' + (v.created_by_name || 'Неизвестно') + '</p>';
             html += '<p class="text-muted small">Заданий: ' + tasksCount + '</p>';
             html += '<span class="badge ' + (v.is_active ? 'bg-success' : 'bg-secondary') + '">' + 
                     (v.is_active ? 'Активен' : 'Неактивен') + '</span>';
