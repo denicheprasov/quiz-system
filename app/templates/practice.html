@@ -269,7 +269,11 @@ function prevTask() {
     }
 }
 
-function finishPractice() {
+async function finishPractice() {
+    if (sessionId) {
+        await fetch('/student/api/practice/' + sessionId + '/finish', {method: 'POST', credentials: 'include'});
+    }
+    
     document.getElementById('practiceScreen').style.display = 'none';
     document.getElementById('resultScreen').style.display = 'block';
     

@@ -417,6 +417,28 @@ def answer_practice_task_api(
     }
 
 
+@router.post("/api/practice/{session_id}/finish")
+def finish_practice_api(
+    session_id: int,
+    request: Request,
+    db: Session = Depends(database.get_db),
+):
+    current_user = get_user_from_request(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401)
+
+    session = db.query(models.PracticeSession).filter(
+        models.PracticeSession.id == session_id,
+        models.PracticeSession.user_id == current_user.id,
+    ).first()
+    if not session:
+        raise HTTPException(status_code=404)
+
+    session.completed_at = datetime.utcnow()
+    db.commit()
+    return {"message": "Practice completed"}
+
+
 @router.get("/api/practice/history")
 def get_practice_history_api(request: Request, db: Session = Depends(database.get_db)):
     """API: Получить историю тренировок и вариантов"""
