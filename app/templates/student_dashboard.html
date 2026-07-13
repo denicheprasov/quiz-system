@@ -3,82 +3,82 @@
 {% block title %}Личный кабинет{% endblock %}
 
 {% block content %}
-<style>
-.action-btn { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 12px; border: none; text-decoration: none; font-weight: 600; transition: transform 0.2s, box-shadow 0.2s; }
-.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
-.action-btn .icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 1.4rem; flex-shrink: 0; }
-.group-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bs-gray-100); margin-bottom: 6px; text-decoration: none; transition: background 0.2s; }
-.group-item:hover { background: var(--bs-primary-bg-subtle); }
-[data-bs-theme="dark"] .group-item { background: var(--bs-gray-800); }
-[data-bs-theme="dark"] .group-item:hover { background: var(--bs-primary-bg-subtle); }
-</style>
-
-<div class="row g-4">
-    <div class="col-md-7">
-        <div class="card h-100">
-            <div class="card-body p-0">
-                <div style="padding: 20px 24px 12px;">
-                    <h5 style="margin:0">{{ greeting(user) }}</h5>
-                </div>
-
-                <div class="px-3 pb-3" id="assignedTests">
-                    <div class="alert alert-info" style="border:none;background:var(--bs-gray-100)">📭 Загрузка...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-5">
-        <div class="row g-3 mb-3">
-            <div class="col-4">
-                <div class="stat-card" style="padding:16px">
-                    <div class="stat-number" style="font-size:1.8rem" id="totalAssigned">0</div>
-                    <div class="stat-label" style="font-size:0.75rem">Вариантов решено</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="stat-card" style="padding:16px">
-                    <div class="stat-number" style="font-size:1.8rem" id="completedAssigned">0</div>
-                    <div class="stat-label" style="font-size:0.75rem">Заданий решено</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="stat-card" style="padding:16px">
-                    <div class="stat-number" style="font-size:1.8rem" id="totalPractice">0</div>
-                    <div class="stat-label" style="font-size:0.75rem">Тренировок</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mb-3">
-            <div class="card-body p-0">
-                <div style="padding:14px 18px;border-bottom:1px solid var(--bs-border-color)">
-                    <h6 class="mb-0" style="font-weight:700">🚀 Быстрые действия</h6>
-                </div>
-                <div style="padding:12px">
-                    <a href="/student/bank" class="action-btn" style="background:#e8f5e9;color:#2e7d32">
-                        <span class="icon" style="background:#c8e6c9">📚</span> Банк заданий
-                    </a>
-                    <a href="/student/practice" class="action-btn" style="background:#e3f2fd;color:#1565c0;margin-top:8px">
-                        <span class="icon" style="background:#bbdefb">🎯</span> Тренировка
-                    </a>
-                    <a href="/student/generate" class="action-btn" style="background:#fff3e0;color:#e65100;margin-top:8px">
-                        <span class="icon" style="background:#ffe0b2">🎲</span> Сгенерировать вариант
-                    </a>
-                    <a href="/student/history" class="action-btn" style="background:#f3e5f5;color:#7b1fa2;margin-top:8px">
-                        <span class="icon" style="background:#e1bee7">📜</span> История
-                    </a>
-                </div>
-            </div>
-        </div>
-
+<div class="row">
+    <div class="col-md-12">
         <div class="card">
-            <div class="card-body p-0">
-                <div style="padding:14px 18px;border-bottom:1px solid var(--bs-border-color)">
-                    <h6 class="mb-0" style="font-weight:700">👥 Мои группы</h6>
+            <div class="card-header gradient">
+                <h4 class="mb-0">📊 Личный кабинет</h4>
+            </div>
+            <div class="card-body">
+                <h5>{{ greeting(user) }}</h5>
+                
+                <hr>
+                
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalAssigned">0</div>
+                            <div class="stat-label">Решенных вариантов</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-number" id="completedAssigned">0</div>
+                            <div class="stat-label">Решенных заданий</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalPractice">0</div>
+                            <div class="stat-label">Тренировок пройдено</div>
+                        </div>
+                    </div>
                 </div>
-                <div style="padding:12px" id="studentGroups">
-                    <div class="text-muted small" style="padding:8px">Загрузка...</div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header gradient">
+                                <h5 class="mb-0">📝 Мои тесты</h5>
+                            </div>
+                            <div class="card-body" id="assignedTests">
+                                <div class="alert alert-info">📭 У вас нет выданных тестов</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header gradient">
+                                <h5 class="mb-0">🎯 Быстрые действия</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="/student/bank" class="btn btn-outline-primary">
+                                        <i class="bi bi-book"></i> Смотреть банк заданий
+                                    </a>
+                                    <a href="/student/practice" class="btn btn-outline-success">
+                                        <i class="bi bi-play-circle"></i> Начать тренировку
+                                    </a>
+                                    <a href="/student/generate" class="btn btn-outline-warning">
+                                        <i class="bi bi-dice"></i> Сгенерировать вариант
+                                    </a>
+                                    <a href="/student/history" class="btn btn-outline-secondary">
+                                        <i class="bi bi-clock-history"></i> Моя история
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header gradient">
+                                <h5 class="mb-0">👥 Мои группы</h5>
+                            </div>
+                            <div class="card-body" id="studentGroups">
+                                <div class="text-muted small">Загрузка...</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -86,62 +86,78 @@
 </div>
 
 <script>
+// Загрузка дашборда
 async function loadDashboard() {
     try {
-        const response = await fetch('/student/api/dashboard', {credentials: 'include'});
+        const response = await fetch('/student/api/dashboard', {
+            credentials: 'include'
+        });
         const data = await response.json();
-
+        
         document.getElementById('totalAssigned').textContent = data.total_assigned || 0;
         document.getElementById('completedAssigned').textContent = data.unique_tasks_completed || 0;
         document.getElementById('totalPractice').textContent = data.total_practice_completed || 0;
-
-        // Отображаем выданные тесты + варианты
+        
+        // Отображаем выданные тесты
         const container = document.getElementById('assignedTests');
         let html = '';
-
+        
+        // Назначенные варианты
         if (data.variant_assignments && data.variant_assignments.length > 0) {
-            html += '<h6 class="px-2 mt-3" style="font-weight:700">📋 Назначенные варианты</h6><div class="list-group list-group-flush">';
+            html += '<h6 class="mt-2">📋 Назначенные варианты</h6><div class="list-group mb-3">';
             data.variant_assignments.forEach(function(va) {
-                html += '<a href="/student/variant/' + va.variant_id + '" class="list-group-item list-group-item-action border-0" style="border-radius:8px;margin:2px 8px">';
-                html += '<div class="d-flex justify-content-between align-items-center">';
-                html += '<span class="fw-semibold">' + (va.variant_title || 'Вариант') + '</span>';
-                html += '<span class="badge bg-' + (va.status === 'pending' ? 'warning' : 'success') + ' rounded-pill">' + (va.status === 'pending' ? 'Ожидает' : 'Завершен') + '</span>';
+                html += '<a href="/student/variant/' + va.variant_id + '" class="list-group-item list-group-item-action">';
+                html += '<div class="d-flex w-100 justify-content-between">';
+                html += '<h6 class="mb-1">' + (va.variant_title || 'Вариант') + '</h6>';
+                html += '<small class="text-muted">' + (va.status === 'pending' ? '⏳ Ожидает' : '✅ Завершен') + '</small>';
                 html += '</div>';
                 html += '<small class="text-muted">Выдан: ' + new Date(va.assigned_at).toLocaleDateString() + '</small>';
                 html += '</a>';
             });
             html += '</div>';
         }
-
+        
         if (data.assigned_tests && data.assigned_tests.length > 0) {
-            html += '<h6 class="px-2 mt-3" style="font-weight:700">📝 Назначенные тесты</h6><div class="list-group list-group-flush">';
-            data.assigned_tests.forEach(function(test) {
-                const statusMap = {pending:'⏳',in_progress:'🔄',completed:'✅',expired:'⏰'};
-                html += '<a href="/take-quiz/' + test.quiz_id + '" class="list-group-item list-group-item-action border-0" style="border-radius:8px;margin:2px 8px">';
-                html += '<div class="d-flex justify-content-between"><span>' + (test.quiz ? test.quiz.title : 'Тест') + '</span><span>' + (statusMap[test.status] || '') + '</span></div>';
-                html += '<small class="text-muted">Выдан: ' + new Date(test.assigned_at).toLocaleDateString() + '</small>';
-                html += '</a>';
+            html += '<h6 class="mt-2">📝 Назначенные тесты</h6><div class="list-group">';
+            data.assigned_tests.forEach(test => {
+                const statusMap = {
+                    'pending': '⏳ Ожидает',
+                    'in_progress': '🔄 В процессе',
+                    'completed': '✅ Завершен',
+                    'expired': '⏰ Истек'
+                };
+                const status = statusMap[test.status] || test.status;
+                html += `
+                    <a href="/take-quiz/${test.quiz_id}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${test.quiz ? test.quiz.title : 'Тест'}</h6>
+                            <small class="text-muted">${status}</small>
+                        </div>
+                        <small class="text-muted">Выдан: ${new Date(test.assigned_at).toLocaleDateString()}</small>
+                    </a>
+                `;
             });
             html += '</div>';
         }
-
+        
         if (!html) {
-            html = '<div class="text-center text-muted py-5"><div style="font-size:3rem;margin-bottom:8px">📭</div><p class="mb-0">Нет назначенных заданий</p></div>';
+            html = '<div class="alert alert-info">📭 Нет назначенных заданий</div>';
         }
         container.innerHTML = html;
-
+        
         // Отображаем группы
         const groupContainer = document.getElementById('studentGroups');
         if (data.student_groups && data.student_groups.length > 0) {
             groupContainer.innerHTML = data.student_groups.map(function(g) {
-                return '<a href="/groups/' + g.id + '/view" class="group-item">👥 <span class="fw-semibold">' + g.name + '</span></a>';
+                return '<div class="mb-1">👥 <a href="/groups/' + g.id + '/view" class="text-decoration-none fw-bold">' + g.name + '</a></div>';
             }).join('');
         } else {
-            groupContainer.innerHTML = '<div class="text-muted small" style="padding:8px">Вы не состоите в группах</div>';
+            groupContainer.innerHTML = '<div class="text-muted small">Вы не состоите в группах</div>';
         }
-
+        
     } catch (error) {
         console.error('Error:', error);
+        // Если ошибка, оставляем значения по умолчанию
     }
 }
 
