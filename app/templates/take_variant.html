@@ -162,6 +162,10 @@ async function finalSubmit() {
     document.getElementById('finalSection').classList.remove('d-none');
     document.getElementById('finalResults').innerHTML = '<div class="alert alert-info fs-5">✅ Верно: ' + data.score + ' из ' + data.total + '</div>';
     document.getElementById('tasks').scrollIntoView({behavior: 'smooth'});
+
+    setTimeout(function() {
+        window.location.href = '/student/dashboard';
+    }, 2000);
 }
 
 loadVariant();
