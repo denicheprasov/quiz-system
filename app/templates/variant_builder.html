@@ -15,39 +15,19 @@
                         <label class="form-label">Название варианта</label>
                         <input type="text" class="form-control" id="title" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Описание</label>
-                        <textarea class="form-control" id="description" rows="2"></textarea>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="shuffle" checked>
-                                <label class="form-check-label">Перемешивать задания</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input" id="fillMissing" checked>
-                                <label class="form-check-label">Заполнять пропуски похожими</label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <hr>
+
                     <button type="submit" class="btn btn-success w-100" id="generateBtn">
                         🎲 Сгенерировать вариант
                     </button>
                 </form>
-                
+
                 <div id="progress" style="display:none;" class="mt-3">
                     <div class="text-center">
                         <div class="spinner-border" role="status"></div>
                         <p>Генерация варианта...</p>
                     </div>
                 </div>
-                
+
                 <div id="result" style="display:none;" class="mt-3"></div>
             </div>
         </div>
@@ -57,33 +37,28 @@
 <script>
 document.getElementById('variantForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
+
     const data = {
-        title: document.getElementById('title').value,
-        description: document.getElementById('description').value,
-        shuffle: document.getElementById('shuffle').checked,
-        fill_missing: document.getElementById('fillMissing').checked
+        title: document.getElementById('title').value
     };
-    
+
     document.getElementById('generateBtn').disabled = true;
     document.getElementById('progress').style.display = 'block';
     document.getElementById('result').style.display = 'none';
-    
+
     try {
         const response = await fetch('/variants/generate', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: {'Content-Type': 'application/json'},
             credentials: 'include',
             body: JSON.stringify(data)
         });
-        
+
         const result = await response.json();
-        
+
         document.getElementById('progress').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        
+
         let html = '<div class="alert alert-success">';
         html += '<h5>✅ Вариант создан!</h5>';
         html += '<p><strong>Название:</strong> ' + result.title + '</p>';
@@ -91,13 +66,13 @@ document.getElementById('variantForm').addEventListener('submit', async function
         html += '<p><strong>Статус:</strong> ' + (result.is_active ? 'Активен' : 'Неактивен') + '</p>';
         html += '<a href="/admin" class="btn btn-primary">Перейти в админ-панель</a>';
         html += '</div>';
-        
+
         document.getElementById('result').innerHTML = html;
-        
+
     } catch (error) {
         document.getElementById('progress').style.display = 'none';
         document.getElementById('result').style.display = 'block';
-        document.getElementById('result').innerHTML = 
+        document.getElementById('result').innerHTML =
             '<div class="alert alert-danger">❌ Ошибка генерации: ' + error.message + '</div>';
     } finally {
         document.getElementById('generateBtn').disabled = false;
