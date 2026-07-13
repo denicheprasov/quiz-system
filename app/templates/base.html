@@ -120,31 +120,29 @@
                     {% if user %}
                         {% if user.is_teacher %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="teacherDropdown" role="button" data-bs-toggle="dropdown">👨‍🏫 Учитель</a>
+                                <a class="nav-link dropdown-toggle" href="#" id="teacherDropdown" role="button" data-bs-toggle="dropdown">{{ display_name(user) }}</a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="/admin">📊 Админ-панель</a></li>
+                                    <li><a class="dropdown-item" href="/profile">⚙️ Редактировать профиль</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="/bank">📚 Банк заданий</a></li>
-                                    <li><a class="dropdown-item" href="/import">📥 Импорт</a></li>
-                                    <li><a class="dropdown-item" href="/variant-builder">🎲 Собрать вариант</a></li>
-                                    <li><a class="dropdown-item" href="/variants/create">📋 Создать вариант</a></li>
+                                    <li><a class="dropdown-item" href="/logout">🚪 Выйти</a></li>
                                 </ul>
                             </li>
                         {% else %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown">👨‍🎓 Ученик</a>
+                                <a class="nav-link dropdown-toggle" href="#" id="studentDropdown" role="button" data-bs-toggle="dropdown">👨‍🎓 {{ display_name(user) }}</a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="/student/dashboard">📊 Личный кабинет</a></li>
                                     <li><a class="dropdown-item" href="/student/bank">📚 Банк заданий</a></li>
                                     <li><a class="dropdown-item" href="/student/practice">🎯 Тренировка</a></li>
                                     <li><a class="dropdown-item" href="/student/history">📜 История</a></li>
                                     <li><a class="dropdown-item" href="/groups">👥 Группы</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/profile">⚙️ Редактировать профиль</a></li>
+                                    <li><a class="dropdown-item" href="/logout">🚪 Выйти</a></li>
                                 </ul>
                             </li>
                         {% endif %}
-                        <li class="nav-item"><span class="nav-link">👋 {{ display_name(user) }}</span></li>
-                        <li class="nav-item"><a class="nav-link" href="/profile">⚙️</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/logout">🚪</a></li>
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="/login">Вход</a></li>
                         <li class="nav-item"><a class="nav-link" href="/register">Регистрация</a></li>
