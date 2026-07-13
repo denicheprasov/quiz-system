@@ -230,7 +230,7 @@ class ImportResult(BaseModel):
 
 
 class GenerateVariantRequest(BaseModel):
-    title: str
+    title: Optional[str] = None
     description: Optional[str] = None
     shuffle: bool = True
     fill_missing: bool = True
