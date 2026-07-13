@@ -182,7 +182,16 @@ function showTask(index) {
     
     // Обновляем кнопки
     document.getElementById('prevBtn').disabled = index === 0;
-    document.getElementById('nextBtn').disabled = index === currentTasks.length - 1;
+    var nextBtn = document.getElementById('nextBtn');
+    if (index === currentTasks.length - 1) {
+        nextBtn.innerHTML = '🏁 Завершить тренировку';
+        nextBtn.className = 'btn btn-success';
+        nextBtn.onclick = function() { finishPractice(); };
+    } else {
+        nextBtn.innerHTML = 'Далее <i class="bi bi-arrow-right"></i>';
+        nextBtn.className = 'btn btn-primary';
+        nextBtn.onclick = function() { nextTask(); };
+    }
 }
 
 async function submitAnswer(taskId) {
