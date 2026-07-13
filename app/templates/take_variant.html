@@ -19,10 +19,10 @@
             <div class="card-body">
                 <div id="variantHeader" class="mb-3"></div>
                 <div id="tasks"></div>
-                <div id="submitSection" class="d-none mt-3">
+                <div id="finalSection" class="d-none mt-3">
                     <hr>
                     <h5>Результаты</h5>
-                    <div id="results"></div>
+                    <div id="finalResults"></div>
                     <a href="/student/dashboard" class="btn btn-primary mt-2">📊 На дашборд</a>
                 </div>
             </div>
@@ -31,6 +31,8 @@
 </div>
 
 <script>
+var allTasksChecked = false;
+
 async function loadVariant() {
     const container = document.getElementById('tasks');
     container.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
@@ -60,21 +62,74 @@ async function loadVariant() {
         html += '<input type="text" class="form-control answer-input" data-id="' + vt.id + '" data-correct="' + task.correct_answer + '">';
         html += '</div>';
         html += '<div class="result-feedback mt-1"></div>';
+        html += '<div class="retry-btn mt-1"></div>';
         html += '</div>';
     });
-    html += '<button class="btn btn-success mt-3 w-100" onclick="submitAll()" id="submitBtn">📤 Отправить все</button>';
+    html += '<div class="d-flex gap-2 mt-3">';
+    html += '<button class="btn btn-success flex-fill" onclick="checkAll()" id="checkBtn">✅ Проверить</button>';
+    html += '<button class="btn btn-primary flex-fill d-none" onclick="finalSubmit()" id="finalBtn">📤 Завершить</button>';
+    html += '</div>';
     container.innerHTML = html;
 }
 
-async function submitAll() {
+function checkAll() {
+    var inputs = document.querySelectorAll('.answer-input');
+    var allCorrect = true;
+
+    inputs.forEach(function(inp) {
+        var card = inp.closest('.task-card');
+        var feedback = card.querySelector('.result-feedback');
+        var retryBtn = card.querySelector('.retry-btn');
+
+        card.classList.remove('correct', 'incorrect');
+        var isCorrect = inp.value.trim().toLowerCase() === inp.dataset.correct.toLowerCase();
+        card.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+        if (isCorrect) {
+            feedback.innerHTML = '<span class="text-success fw-bold">✅ Верно</span>';
+            inp.disabled = true;
+            retryBtn.innerHTML = '';
+        } else {
+            feedback.innerHTML = '<span class="text-danger fw-bold">❌ Неверно</span>';
+            retryBtn.innerHTML = '<button class="btn btn-sm btn-outline-warning" onclick="retryTask(this)">🔄 Перерешать</button>';
+            allCorrect = false;
+        }
+    });
+
+    if (allCorrect) {
+        document.getElementById('finalBtn').classList.remove('d-none');
+        document.getElementById('finalBtn').click();
+    } else {
+        document.getElementById('finalBtn').classList.remove('d-none');
+    }
+    allTasksChecked = true;
+}
+
+function retryTask(btn) {
+    var card = btn.closest('.task-card');
+    var input = card.querySelector('.answer-input');
+    var feedback = card.querySelector('.result-feedback');
+
+    input.disabled = false;
+    input.value = '';
+    input.focus();
+    card.classList.remove('correct', 'incorrect');
+    feedback.innerHTML = '';
+    btn.remove();
+    allTasksChecked = false;
+    document.getElementById('finalBtn').classList.add('d-none');
+}
+
+async function finalSubmit() {
     var inputs = document.querySelectorAll('.answer-input');
     var answers = {};
     inputs.forEach(function(inp) {
         answers[inp.dataset.id] = inp.value;
     });
 
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').innerHTML = '⏳ Отправка...';
+    document.getElementById('checkBtn').disabled = true;
+    document.getElementById('finalBtn').disabled = true;
+    document.getElementById('finalBtn').innerHTML = '⏳ Отправка...';
 
     const r = await fetch('/student/variant/' + {{ variant_id }} + '/submit', {
         method: 'POST',
@@ -101,10 +156,11 @@ async function submitAll() {
             feedback.innerHTML = '<span class="text-danger fw-bold">❌ Неверно. Правильный ответ: ' + res.correct_answer + '</span>';
         }
         total++;
+        card.querySelector('.retry-btn').innerHTML = '';
     });
 
-    document.getElementById('submitSection').classList.remove('d-none');
-    document.getElementById('results').innerHTML = '<div class="alert alert-info fs-5">✅ Верно: ' + data.score + ' из ' + data.total + '</div>';
+    document.getElementById('finalSection').classList.remove('d-none');
+    document.getElementById('finalResults').innerHTML = '<div class="alert alert-info fs-5">✅ Верно: ' + data.score + ' из ' + data.total + '</div>';
     document.getElementById('tasks').scrollIntoView({behavior: 'smooth'});
 }
 
