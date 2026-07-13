@@ -11,10 +11,10 @@
             </div>
             <div class="card-body">
                 <h5>{{ greeting(user) }}</h5>
-                
+
                 <hr>
-                
-                <div class="row mb-4">
+
+                <div class="row">
                     <div class="col-md-4">
                         <div class="stat-card">
                             <div class="stat-number" id="totalAssigned">0</div>
@@ -34,51 +34,48 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header gradient">
-                                <h5 class="mb-0">📝 Мои тесты</h5>
-                            </div>
-                            <div class="card-body" id="assignedTests">
-                                <div class="alert alert-info">📭 У вас нет выданных тестов</div>
-                            </div>
-                        </div>
+
+                <hr>
+
+                <h5>🚀 Быстрые действия</h5>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <a href="/student/bank" class="btn btn-outline-primary w-100 mb-2">
+                            📚 Банк заданий
+                        </a>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header gradient">
-                                <h5 class="mb-0">🎯 Быстрые действия</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <a href="/student/bank" class="btn btn-outline-primary">
-                                        <i class="bi bi-book"></i> Смотреть банк заданий
-                                    </a>
-                                    <a href="/student/practice" class="btn btn-outline-success">
-                                        <i class="bi bi-play-circle"></i> Начать тренировку
-                                    </a>
-                                    <a href="/student/generate" class="btn btn-outline-warning">
-                                        <i class="bi bi-dice"></i> Сгенерировать вариант
-                                    </a>
-                                    <a href="/student/history" class="btn btn-outline-secondary">
-                                        <i class="bi bi-clock-history"></i> Моя история
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="col-md-3">
+                        <a href="/student/practice" class="btn btn-outline-success w-100 mb-2">
+                            🎯 Тренировка
+                        </a>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header gradient">
-                                <h5 class="mb-0">👥 Мои группы</h5>
-                            </div>
-                            <div class="card-body" id="studentGroups">
-                                <div class="text-muted small">Загрузка...</div>
-                            </div>
-                        </div>
+                    <div class="col-md-3">
+                        <a href="/student/generate" class="btn btn-outline-warning w-100 mb-2">
+                            🎲 Сгенерировать вариант
+                        </a>
                     </div>
+                    <div class="col-md-3">
+                        <a href="/student/history" class="btn btn-outline-secondary w-100 mb-2">
+                            📜 История
+                        </a>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h5>📋 Назначенные варианты</h5>
+                <div id="assignedTests">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status"></div>
+                        <p>Загрузка...</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h5>👥 Мои группы</h5>
+                <div id="studentGroups">
+                    <div class="text-muted small">Загрузка...</div>
                 </div>
             </div>
         </div>
@@ -86,78 +83,68 @@
 </div>
 
 <script>
-// Загрузка дашборда
 async function loadDashboard() {
     try {
-        const response = await fetch('/student/api/dashboard', {
-            credentials: 'include'
-        });
+        const response = await fetch('/student/api/dashboard', {credentials: 'include'});
         const data = await response.json();
-        
+
         document.getElementById('totalAssigned').textContent = data.total_assigned || 0;
         document.getElementById('completedAssigned').textContent = data.unique_tasks_completed || 0;
         document.getElementById('totalPractice').textContent = data.total_practice_completed || 0;
-        
-        // Отображаем выданные тесты
+
+        // Отображаем назначенные варианты и тесты
         const container = document.getElementById('assignedTests');
         let html = '';
-        
-        // Назначенные варианты
+
         if (data.variant_assignments && data.variant_assignments.length > 0) {
-            html += '<h6 class="mt-2">📋 Назначенные варианты</h6><div class="list-group mb-3">';
+            html += '<div class="list-group mb-3">';
             data.variant_assignments.forEach(function(va) {
                 html += '<a href="/student/variant/' + va.variant_id + '" class="list-group-item list-group-item-action">';
                 html += '<div class="d-flex w-100 justify-content-between">';
                 html += '<h6 class="mb-1">' + (va.variant_title || 'Вариант') + '</h6>';
-                html += '<small class="text-muted">' + (va.status === 'pending' ? '⏳ Ожидает' : '✅ Завершен') + '</small>';
+                html += '<small>' + (va.status === 'pending' ? '⏳ Ожидает' : '✅ Завершен') + '</small>';
                 html += '</div>';
                 html += '<small class="text-muted">Выдан: ' + new Date(va.assigned_at).toLocaleDateString() + '</small>';
                 html += '</a>';
             });
             html += '</div>';
         }
-        
+
         if (data.assigned_tests && data.assigned_tests.length > 0) {
-            html += '<h6 class="mt-2">📝 Назначенные тесты</h6><div class="list-group">';
-            data.assigned_tests.forEach(test => {
-                const statusMap = {
-                    'pending': '⏳ Ожидает',
-                    'in_progress': '🔄 В процессе',
-                    'completed': '✅ Завершен',
-                    'expired': '⏰ Истек'
-                };
-                const status = statusMap[test.status] || test.status;
-                html += `
-                    <a href="/take-quiz/${test.quiz_id}" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">${test.quiz ? test.quiz.title : 'Тест'}</h6>
-                            <small class="text-muted">${status}</small>
-                        </div>
-                        <small class="text-muted">Выдан: ${new Date(test.assigned_at).toLocaleDateString()}</small>
-                    </a>
-                `;
+            html += '<h6 class="mt-3">📝 Назначенные тесты</h6><div class="list-group mb-3">';
+            data.assigned_tests.forEach(function(test) {
+                const statusMap = {pending:'⏳ Ожидает',in_progress:'🔄 В процессе',completed:'✅ Завершен',expired:'⏰ Истек'};
+                html += '<a href="/take-quiz/' + test.quiz_id + '" class="list-group-item list-group-item-action">';
+                html += '<div class="d-flex w-100 justify-content-between">';
+                html += '<h6 class="mb-1">' + (test.quiz ? test.quiz.title : 'Тест') + '</h6>';
+                html += '<small>' + (statusMap[test.status] || test.status) + '</small>';
+                html += '</div>';
+                html += '<small class="text-muted">Выдан: ' + new Date(test.assigned_at).toLocaleDateString() + '</small>';
+                html += '</a>';
             });
             html += '</div>';
         }
-        
+
         if (!html) {
             html = '<div class="alert alert-info">📭 Нет назначенных заданий</div>';
         }
         container.innerHTML = html;
-        
+
         // Отображаем группы
         const groupContainer = document.getElementById('studentGroups');
         if (data.student_groups && data.student_groups.length > 0) {
-            groupContainer.innerHTML = data.student_groups.map(function(g) {
-                return '<div class="mb-1">👥 <a href="/groups/' + g.id + '/view" class="text-decoration-none fw-bold">' + g.name + '</a></div>';
-            }).join('');
+            let groupHtml = '<div class="list-group">';
+            data.student_groups.forEach(function(g) {
+                groupHtml += '<a href="/groups/' + g.id + '/view" class="list-group-item list-group-item-action">👥 ' + g.name + '</a>';
+            });
+            groupHtml += '</div>';
+            groupContainer.innerHTML = groupHtml;
         } else {
-            groupContainer.innerHTML = '<div class="text-muted small">Вы не состоите в группах</div>';
+            groupContainer.innerHTML = '<div class="alert alert-info">📭 Вы не состоите в группах</div>';
         }
-        
+
     } catch (error) {
         console.error('Error:', error);
-        // Если ошибка, оставляем значения по умолчанию
     }
 }
 
