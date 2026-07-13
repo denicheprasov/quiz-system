@@ -303,19 +303,22 @@ def clear_history_api(request: Request, db: Session = Depends(database.get_db)):
     if not current_user:
         raise HTTPException(status_code=401)
 
-    db.query(models.PracticeTask).filter(
-        models.PracticeTask.session_id.in_(
-            db.query(models.PracticeSession.id).filter(
-                models.PracticeSession.user_id == current_user.id
-            )
-        )
-    ).delete(synchronize_session=False)
-    db.query(models.PracticeSession).filter(
-        models.PracticeSession.user_id == current_user.id
-    ).delete(synchronize_session=False)
+    session_ids = [
+        s.id for s in db.query(models.PracticeSession).filter(
+            models.PracticeSession.user_id == current_user.id
+        ).all()
+    ]
+
+    for sid in session_ids:
+        for pt in db.query(models.PracticeTask).filter(models.PracticeTask.session_id == sid).all():
+            pt.user_answer = None
+            pt.is_correct = None
+            pt.answered_at = None
+
     db.query(models.VariantAssignment).filter(
         models.VariantAssignment.student_id == current_user.id
-    ).delete(synchronize_session=False)
+    ).update({"results": None}, synchronize_session=False)
+
     db.commit()
     return {"message": "History cleared"}
 
