@@ -369,7 +369,6 @@ function assignVariant(variantId) {
         return r.json();
     })
     .then(function(data) {
-        alert(data.message || 'Вариант выдан');
         location.reload();
     })
     .catch(function(e) { alert(e.message); });
