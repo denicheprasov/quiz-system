@@ -42,45 +42,6 @@ def get_tasks(
     return tasks
 
 
-@router.get(
-    "/tasks/by-number/{task_number}", response_model=List[schemas.TaskBankResponse]
-)
-def get_tasks_by_number(
-    task_number: int,
-    db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_user),
-):
-    if not current_user.is_teacher:
-        raise HTTPException(status_code=403, detail="Only teachers can view bank")
-
-    tasks = (
-        db.query(models.TaskBank)
-        .filter(models.TaskBank.task_number == task_number)
-        .order_by(models.TaskBank.order_in_file)
-        .all()
-    )
-
-    return tasks
-
-
-@router.get("/tasks/numbers", response_model=List[int])
-def get_task_numbers(
-    db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_user),
-):
-    if not current_user.is_teacher:
-        raise HTTPException(status_code=403, detail="Only teachers can view bank")
-
-    result = (
-        db.query(models.TaskBank.task_number)
-        .distinct()
-        .order_by(models.TaskBank.task_number)
-        .all()
-    )
-
-    return [r[0] for r in result]
-
-
 @router.post("/import-url")
 def import_from_url(
     url: str = Form(""),

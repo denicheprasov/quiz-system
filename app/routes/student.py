@@ -120,55 +120,6 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
     }
 
 
-@router.get("/api/assigned-tests", response_model=List[schemas.AssignedTestResponse])
-def get_assigned_tests_api(
-    request: Request,
-    status: Optional[str] = None,
-    db: Session = Depends(database.get_db),
-):
-    """API: Получить все выданные тесты"""
-    current_user = get_user_from_request(request, db)
-
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    query = db.query(models.AssignedTest).filter(
-        models.AssignedTest.user_id == current_user.id
-    )
-
-    if status:
-        query = query.filter(models.AssignedTest.status == status)
-
-    return query.order_by(models.AssignedTest.assigned_at.desc()).all()
-
-
-@router.get("/api/assigned-tests/{test_id}")
-def get_assigned_test_api(
-    test_id: int, request: Request, db: Session = Depends(database.get_db)
-):
-    """API: Получить выданный тест для прохождения"""
-    current_user = get_user_from_request(request, db)
-
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    assigned = (
-        db.query(models.AssignedTest)
-        .filter(
-            models.AssignedTest.id == test_id,
-            models.AssignedTest.user_id == current_user.id,
-        )
-        .first()
-    )
-
-    if not assigned:
-        raise HTTPException(status_code=404, detail="Test not found")
-
-    quiz = db.query(models.Quiz).filter(models.Quiz.id == assigned.quiz_id).first()
-
-    return {"assigned": assigned, "quiz": quiz}
-
-
 @router.get("/api/bank", response_model=List[schemas.TaskBankResponse])
 def get_student_bank_api(
     request: Request,
@@ -323,28 +274,6 @@ def clear_history_api(request: Request, db: Session = Depends(database.get_db)):
     return {"message": "History cleared"}
 
 
-@router.get(
-    "/api/practice/{session_id}", response_model=schemas.PracticeSessionResponse
-)
-def get_practice_session_api(
-    session_id: int, request: Request, db: Session = Depends(database.get_db)
-):
-
-    session = (
-        db.query(models.PracticeSession)
-        .filter(
-            models.PracticeSession.id == session_id,
-            models.PracticeSession.user_id == current_user.id,
-        )
-        .first()
-    )
-
-    if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
-
-    return session
-
-
 @router.post("/api/practice/{session_id}/answer")
 def answer_practice_task_api(
     session_id: int,
@@ -442,44 +371,6 @@ def finish_practice_api(
     session.completed_at = datetime.utcnow()
     db.commit()
     return {"message": "Practice completed"}
-
-
-@router.get("/api/practice/history")
-def get_practice_history_api(request: Request, db: Session = Depends(database.get_db)):
-    """API: Получить историю тренировок и вариантов"""
-    current_user = get_user_from_request(request, db)
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    sessions = (
-        db.query(models.PracticeSession)
-        .filter(models.PracticeSession.user_id == current_user.id)
-        .order_by(models.PracticeSession.started_at.desc())
-        .all()
-    )
-
-    variant_assignments = (
-        db.query(models.VariantAssignment)
-        .filter(
-            models.VariantAssignment.student_id == current_user.id,
-            models.VariantAssignment.status == "completed",
-        )
-        .all()
-    )
-
-    return {
-        "practice_sessions": sessions,
-        "variants": [
-            {
-                "title": va.variant.title if va.variant else "Вариант",
-                "correct_answers": va.score,
-                "total_tasks": va.total,
-                "completed_at": va.assigned_at.isoformat() if va.assigned_at else None,
-                "type": "variant",
-            }
-            for va in variant_assignments
-        ],
-    }
 
 
 @router.get("/api/task-history")
@@ -669,19 +560,3 @@ def submit_variant(
     db.commit()
 
     return {"score": correct, "total": total, "results": results}
-
-
-# ===== ДОБАВЛЕН ЭНДПОИНТ ДЛЯ УЧЕНИКОВ =====
-@router.get("/api/students")
-def get_students_api(request: Request, db: Session = Depends(database.get_db)):
-    """API: Получить список всех учеников (для учителя)"""
-    current_user = get_user_from_request(request, db)
-
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    if not current_user.is_teacher:
-        raise HTTPException(status_code=403, detail="Only teachers can view students")
-
-    students = db.query(models.User).filter(models.User.is_teacher == False).all()
-    return students
