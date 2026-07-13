@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
 from datetime import datetime, date
+import random
 from app import models, schemas, auth, database
-from app.services.variant_generator import VariantGenerator
 
 router = APIRouter(prefix="/variants", tags=["variants"])
 templates = Jinja2Templates(directory="app/templates")
@@ -90,17 +90,38 @@ def generate_variant(
     """Сгенерировать новый вариант из банка заданий"""
     if not current_user.is_teacher:
         raise HTTPException(status_code=403, detail="Only teachers can generate variants")
-    
-    generator = VariantGenerator(db)
-    result = generator.generate_variant(
-        title=data.title,
-        description=data.description,
-        user=current_user,
-        shuffle=data.shuffle,
-        fill_missing=data.fill_missing
+
+    all_tasks = db.query(models.TaskBank).all()
+    if not all_tasks:
+        raise HTTPException(status_code=404, detail="No tasks in bank")
+
+    grouped = {}
+    for task in all_tasks:
+        if task.task_number not in grouped:
+            grouped[task.task_number] = []
+        grouped[task.task_number].append(task)
+
+    selected = []
+    for number in range(1, 28):
+        if number in grouped and grouped[number]:
+            selected.append(random.choice(grouped[number]))
+
+    variant = models.Variant(
+        title=data.title or f"Вариант {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+        created_by=current_user.id,
     )
-    
-    return result['variant']
+    db.add(variant)
+    db.flush()
+
+    for i, task in enumerate(selected, 1):
+        variant_task = models.VariantTask(
+            variant_id=variant.id, task_bank_id=task.id, order_number=i
+        )
+        db.add(variant_task)
+
+    db.commit()
+    db.refresh(variant)
+    return variant
 
 @router.get("/", response_model=List[schemas.VariantResponse])
 def get_variants(
