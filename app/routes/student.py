@@ -502,7 +502,7 @@ def get_task_history_api(request: Request, db: Session = Depends(database.get_db
 
     seen_bank_ids = set()
     for pt in practice_tasks:
-        if not pt.answered_at:
+        if not pt.answered_at or not pt.user_answer:
             continue
         task = db.query(models.TaskBank).filter(models.TaskBank.id == pt.task_bank_id).first()
         seen_bank_ids.add(pt.task_bank_id)
@@ -531,6 +531,8 @@ def get_task_history_api(request: Request, db: Session = Depends(database.get_db
         if not va.results:
             continue
         for r in va.results:
+            if not r.get("user_answer"):
+                continue
             task_id = r.get("variant_task_id")
             if not task_id:
                 continue
