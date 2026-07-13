@@ -110,7 +110,13 @@ def get_variants(
 ):
     """Получить список всех вариантов"""
     variants = db.query(models.Variant).offset(skip).limit(limit).all()
-    return variants
+    result = []
+    for v in variants:
+        creator = db.query(models.User).filter(models.User.id == v.created_by).first()
+        r = schemas.VariantResponse.model_validate(v)
+        r.created_by_name = auth.get_display_name(creator) if creator else "Неизвестно"
+        result.append(r)
+    return result
 
 @router.get("/{variant_id}", response_model=schemas.VariantResponse)
 def get_variant(
