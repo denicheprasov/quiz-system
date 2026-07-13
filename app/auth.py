@@ -41,14 +41,14 @@ def greeting(user) -> str:
     from datetime import datetime
     hour = datetime.now().hour
     name = get_first_name(user)
-    if hour < 6:
-        return f"Доброй ночи, {name}!"
-    elif hour < 12:
+    if 7 <= hour < 10:
         return f"Доброе утро, {name}!"
-    elif hour < 17:
+    elif 10 <= hour < 18:
         return f"Добрый день, {name}!"
-    else:
+    elif 18 <= hour < 21:
         return f"Добрый вечер, {name}!"
+    else:
+        return f"Доброй ночи, {name}!"
 
 
 def authenticate_user(db: Session, username: str, password: str):
