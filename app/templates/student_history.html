@@ -3,16 +3,28 @@
 {% block title %}История заданий{% endblock %}
 
 {% block content %}
+<style>
+.history-item { border-radius: var(--card-radius); padding: 16px 20px; margin-bottom: 10px; border-left: 4px solid var(--bs-gray-400); background: var(--bs-card-bg); transition: transform 0.15s; }
+.history-item:hover { transform: translateX(4px); }
+.history-item.correct { border-left-color: #198754; }
+.history-item.incorrect { border-left-color: #dc3545; }
+.history-item .tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.history-item .tag.correct { background: #d1e7dd; color: #0f5132; }
+.history-item .tag.incorrect { background: #f8d7da; color: #842029; }
+[data-bs-theme="dark"] .history-item .tag.correct { background: #0f5132; color: #d1e7dd; }
+[data-bs-theme="dark"] .history-item .tag.incorrect { background: #842029; color: #f8d7da; }
+</style>
+
 <div class="row">
     <div class="col-md-12">
         <div class="card">
-            <div class="card-header gradient">
+            <div class="card-header gradient d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">📜 История заданий</h4>
+                <button class="btn btn-outline-light btn-sm" onclick="clearHistory()">🗑 Очистить</button>
             </div>
             <div class="card-body">
-                <div class="mb-3 d-flex justify-content-between">
-                    <button class="btn btn-success" onclick="loadHistory()">🔄 Обновить</button>
-                    <button class="btn btn-outline-danger" onclick="clearHistory()">🗑 Очистить историю</button>
+                <div class="mb-3">
+                    <button class="btn btn-success btn-sm" onclick="loadHistory()">🔄 Обновить</button>
                 </div>
                 <div id="historyList">
                     <div class="text-center text-muted py-4">
@@ -35,25 +47,31 @@ async function loadHistory() {
     const items = await r.json();
 
     if (items.length === 0) {
-        container.innerHTML = '<div class="alert alert-info">📭 История пуста</div>';
+        container.innerHTML = '<div class="text-center text-muted py-5"><div style="font-size:3rem;margin-bottom:8px">📭</div><p class="mb-0">История пуста</p></div>';
         return;
     }
 
-    var html = '<div class="table-responsive"><table class="table table-hover">';
-    html += '<thead><tr><th>#</th><th>Задание</th><th>Ваш ответ</th><th>Правильный ответ</th><th>Результат</th><th>Дата</th></tr></thead><tbody>';
-
-    items.forEach(function(item, i) {
-        html += '<tr class="' + (item.is_correct ? 'table-success' : 'table-danger') + '">';
-        html += '<td>' + (i + 1) + '</td>';
-        html += '<td><small>' + (item.text || '') + '</small></td>';
-        html += '<td>' + (item.user_answer || '—') + '</td>';
-        html += '<td>' + item.correct_answer + '</td>';
-        html += '<td>' + (item.is_correct ? '✅' : '❌') + '</td>';
-        html += '<td><small>' + (item.date ? new Date(item.date).toLocaleString('ru-RU') : '') + '</small></td>';
-        html += '</tr>';
+    var html = '';
+    items.forEach(function(item) {
+        var cls = item.is_correct ? 'correct' : 'incorrect';
+        html += '<div class="history-item ' + cls + '">';
+        html += '<div class="d-flex justify-content-between align-items-start">';
+        html += '<div class="flex-grow-1" style="min-width:0">';
+        html += '<div class="mb-1">' + (item.text || '') + '</div>';
+        html += '<div class="d-flex flex-wrap gap-2 mt-2">';
+        html += '<span class="tag ' + cls + '">' + (item.is_correct ? '✅ Верно' : '❌ Неверно') + '</span>';
+        html += '<span class="badge bg-secondary">№' + item.task_number + '</span>';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="text-end ms-3" style="min-width:140px">';
+        html += '<div class="small"><span class="text-muted">Ваш ответ:</span> <strong>' + (item.user_answer || '—') + '</strong></div>';
+        html += '<div class="small"><span class="text-muted">Правильный:</span> <strong>' + item.correct_answer + '</strong></div>';
+        html += '<div class="small text-muted mt-1">' + (item.date ? new Date(item.date).toLocaleString('ru-RU') : '') + '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
     });
 
-    html += '</tbody></table></div>';
     container.innerHTML = html;
 }
 
