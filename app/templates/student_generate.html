@@ -10,15 +10,9 @@
                 <h4 class="mb-0">🎲 Сгенерировать вариант</h4>
             </div>
             <div class="card-body">
-                <form id="variantForm">
-                    <div class="mb-3">
-                        <label class="form-label">Название варианта</label>
-                        <input type="text" class="form-control" id="title" required>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">
-                        🎲 Сгенерировать вариант
-                    </button>
-                </form>
+                <button class="btn btn-success w-100" onclick="generateVariant()">
+                    🎲 Сгенерировать вариант
+                </button>
 
                 <div id="result" class="mt-4" style="display:none;">
                     <hr>
@@ -32,17 +26,19 @@
 </div>
 
 <script>
-document.getElementById('variantForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+async function generateVariant() {
+    document.querySelector('.btn-success').disabled = true;
+    document.querySelector('.btn-success').innerHTML = '⏳ Генерация...';
 
     const response = await fetch('/student/api/generate-variant', {
         method: 'POST',
         credentials: 'include',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            title: document.getElementById('title').value
-        })
+        body: JSON.stringify({})
     });
+
+    document.querySelector('.btn-success').disabled = false;
+    document.querySelector('.btn-success').innerHTML = '🎲 Сгенерировать вариант';
 
     if (!response.ok) {
         alert('Ошибка генерации варианта');
@@ -52,6 +48,6 @@ document.getElementById('variantForm').addEventListener('submit', async (e) => {
     const result = await response.json();
     document.getElementById('result').style.display = 'block';
     document.getElementById('takeLink').href = '/student/variant/' + result.id;
-});
+}
 </script>
 {% endblock %}
