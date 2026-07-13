@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Статистика{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header gradient">
+                <h4 class="mb-0">📈 Статистика</h4>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card" style="padding:16px">
+                            <div class="stat-number" style="font-size:1.8rem" id="statStudents">0</div>
+                            <div class="stat-label">Учеников</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="padding:16px">
+                            <div class="stat-number" style="font-size:1.8rem" id="statVariants">0</div>
+                            <div class="stat-label">Вариантов решено</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="padding:16px">
+                            <div class="stat-number" style="font-size:1.8rem" id="statAvgPercent">0%</div>
+                            <div class="stat-label">Средний балл</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="padding:16px">
+                            <div class="stat-number" style="font-size:1.8rem" id="statHardest">—</div>
+                            <div class="stat-label">Самое сложное задание</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3">📊 Сложность заданий (1-27)</h6>
+                                <canvas id="taskChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3">👨‍🎓 Прогресс учеников</h6>
+                                <canvas id="studentChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">📋 Детальная статистика по ученикам</h6>
+                        <div id="studentTable">
+                            <div class="text-center"><div class="spinner-border spinner-border-sm"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadStats() {
+    const r = await fetch('/api/teacher/stats', {credentials: 'include'});
+    if (!r.ok) { document.querySelector('.card-body').innerHTML = '<div class="alert alert-danger">Ошибка загрузки</div>'; return; }
+    const data = await r.json();
+
+    document.getElementById('statStudents').textContent = data.total_students;
+    document.getElementById('statVariants').textContent = data.total_variants_completed;
+    document.getElementById('statAvgPercent').textContent = data.avg_variant_percent + '%';
+
+    // Самое сложное задание
+    if (data.task_difficulty && data.task_difficulty.length > 0) {
+        var hardest = data.task_difficulty.reduce(function(a, b) { return a.percent < b.percent ? a : b; });
+        document.getElementById('statHardest').textContent = '№' + hardest.number + ' (' + hardest.percent + '%)';
+    }
+
+    // График сложности заданий
+    if (data.task_difficulty && data.task_difficulty.length > 0) {
+        var taskLabels = data.task_difficulty.map(function(t) { return '№' + t.number; });
+        var taskPercents = data.task_difficulty.map(function(t) { return t.percent; });
+
+        new Chart(document.getElementById('taskChart'), {
+            type: 'bar',
+            data: {
+                labels: taskLabels,
+                datasets: [{
+                    label: '% правильных ответов',
+                    data: taskPercents,
+                    backgroundColor: taskPercents.map(function(p) {
+                        return p >= 70 ? '#198754' : p >= 40 ? '#ffc107' : '#dc3545';
+                    }),
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // График прогресса учеников
+    if (data.students && data.students.length > 0) {
+        new Chart(document.getElementById('studentChart'), {
+            type: 'bar',
+            data: {
+                labels: data.students.map(function(s) { return s.display_name; }),
+                datasets: [{
+                    label: 'Средний % по вариантам',
+                    data: data.students.map(function(s) { return s.avg_percent; }),
+                    backgroundColor: data.students.map(function(s) {
+                        return s.avg_percent >= 70 ? '#198754' : s.avg_percent >= 40 ? '#ffc107' : '#dc3545';
+                    }),
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // Таблица учеников
+    if (data.students && data.students.length > 0) {
+        var html = '<div class="table-responsive"><table class="table table-sm">';
+        html += '<thead><tr><th>#</th><th>Ученик</th><th>Решено вариантов</th><th>Средний %</th><th>Правильных в тренировках</th></tr></thead><tbody>';
+        data.students.forEach(function(s, i) {
+            var color = s.avg_percent >= 70 ? 'success' : s.avg_percent >= 40 ? 'warning' : 'danger';
+            html += '<tr><td>' + (i+1) + '</td><td>' + s.display_name + '</td><td>' + s.variants_done + '</td>';
+            html += '<td><span class="badge bg-' + color + '">' + s.avg_percent + '%</span></td><td>' + s.practice_correct + '</td></tr>';
+        });
+        html += '</tbody></table></div>';
+        document.getElementById('studentTable').innerHTML = html;
+    }
+}
+
+loadStats();
+</script>
+{% endblock %}
