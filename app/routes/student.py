@@ -73,12 +73,14 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
                         if vt.id == r.get("variant_task_id") and vt.task_bank_id:
                             completed_task_ids.add(vt.task_bank_id)
 
-    # Все завершённые варианты (для счётчика, включая сгенерированные самим учеником)
+    # Все завершённые варианты с результатом 100% (только идеально решённые)
     all_completed_variants = (
         db.query(models.VariantAssignment)
         .filter(
             models.VariantAssignment.student_id == current_user.id,
             models.VariantAssignment.status == "completed",
+            models.VariantAssignment.total > 0,
+            models.VariantAssignment.score == models.VariantAssignment.total,
         )
         .count()
     )
