@@ -30,34 +30,6 @@
                     </div>
                 </div>
 
-                <!-- Статистика -->
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card bg-info text-white">
-                            <div class="card-body text-center">
-                                <h2 id="totalStudents">0</h2>
-                                <p>Всего учеников</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-warning text-white">
-                            <div class="card-body text-center">
-                                <h2 id="totalBankTasks">0</h2>
-                                <p>Заданий в банке</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-danger text-white">
-                            <div class="card-body text-center">
-                                <h2 id="totalUsers">0</h2>
-                                <p>Всего пользователей</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Вкладки -->
                 <ul class="nav nav-tabs" id="adminTabs" role="tablist">
                     <li class="nav-item">
@@ -140,38 +112,7 @@
 
 <script>
 // Функция загрузки статистики
-function loadStats() {
-    var totalUsers = 0;
 
-    fetch('/users', {credentials: 'include'})
-    .then(function(response) {
-        if (!response.ok) throw new Error('Ошибка загрузки пользователей');
-        return response.json();
-    })
-    .then(function(users) {
-        totalUsers = users.length;
-        var students = users.filter(function(u) { return !u.is_teacher; });
-        document.getElementById('totalStudents').textContent = students.length;
-        document.getElementById('totalUsers').textContent = totalUsers;
-    })
-    .catch(function(error) {
-        console.error('Error loading users:', error);
-        document.getElementById('totalStudents').textContent = '?';
-    });
-
-    fetch('/bank/tasks', {credentials: 'include'})
-    .then(function(response) {
-        if (!response.ok) throw new Error('Ошибка загрузки банка');
-        return response.json();
-    })
-    .then(function(tasks) {
-        document.getElementById('totalBankTasks').textContent = tasks.length;
-    })
-    .catch(function(error) {
-        console.error('Error loading bank tasks:', error);
-        document.getElementById('totalBankTasks').textContent = '?';
-    });
-}
 
 // Функция загрузки вариантов
 function loadVariants() {
@@ -273,7 +214,6 @@ function deleteUser(userId) {
     })
     .then(function() {
         loadStudents();
-        loadStats();
     })
     .catch(function(error) {
         alert('Ошибка: ' + error.message);
@@ -445,7 +385,6 @@ function createAdminGroup(e) {
 
 // Загружаем все данные
 document.addEventListener('DOMContentLoaded', function() {
-    loadStats();
     loadVariants();
     loadStudents();
     loadGroups();
