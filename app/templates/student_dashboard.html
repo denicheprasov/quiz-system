@@ -50,9 +50,9 @@
                         </a>
                     </div>
                     <div class="col-md-3">
-                        <a href="/student/generate" class="btn btn-outline-warning w-100 mb-2">
+                        <button class="btn btn-outline-warning w-100 mb-2" onclick="generateAndRedirect()">
                             🎲 Сгенерировать вариант
-                        </a>
+                        </button>
                     </div>
                     <div class="col-md-3">
                         <a href="/student/history" class="btn btn-outline-secondary w-100 mb-2">
@@ -149,5 +149,17 @@ async function loadDashboard() {
 }
 
 document.addEventListener('DOMContentLoaded', loadDashboard);
+
+async function generateAndRedirect() {
+    const r = await fetch('/student/api/generate-variant', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({})
+    });
+    if (!r.ok) { alert('Ошибка генерации'); return; }
+    const data = await r.json();
+    window.location.href = '/student/variant/' + data.id;
+}
 </script>
 {% endblock %}
