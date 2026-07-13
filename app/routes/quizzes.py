@@ -97,58 +97,6 @@ def get_quiz(
     return quiz
 
 
-@router.put("/{quiz_id}", response_model=schemas.QuizResponse)
-def update_quiz(
-    quiz_id: int,
-    quiz_data: schemas.QuizCreate,
-    db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_user),
-):
-    """Обновить тест"""
-    if not current_user.is_teacher:
-        raise HTTPException(status_code=403, detail="Only teachers can update quizzes")
-
-    quiz = db.query(models.Quiz).filter(models.Quiz.id == quiz_id).first()
-    if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found")
-
-    if quiz.created_by != current_user.id:
-        raise HTTPException(
-            status_code=403, detail="You can only update your own quizzes"
-        )
-
-    # Обновляем基本信息
-    quiz.title = quiz_data.title
-    quiz.description = quiz_data.description
-
-    # Удаляем старые вопросы
-    db.query(models.Question).filter(models.Question.quiz_id == quiz_id).delete()
-
-    # Добавляем новые вопросы
-    for q in quiz_data.questions:
-        if q.task_type == "extended":
-            total_points = len(q.correct_answers)
-        else:
-            total_points = 1
-
-        db_question = models.Question(
-            quiz_id=quiz.id,
-            number=q.number,
-            text=q.text,
-            image_url=q.image_url,
-            file_url=q.file_url,
-            answer_count=len(q.correct_answers),
-            correct_answers=q.correct_answers,
-            task_type=q.task_type,
-            total_points=total_points,
-        )
-        db.add(db_question)
-
-    db.commit()
-    db.refresh(quiz)
-    return quiz
-
-
 @router.delete("/{quiz_id}")
 def delete_quiz(
     quiz_id: int,
@@ -287,16 +235,3 @@ def get_quiz_results(
         )
 
     return result_data
-
-
-@router.get("/students")
-def get_students(
-    db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_user),
-):
-    """Получить список всех учеников (для учителя)"""
-    if not current_user.is_teacher:
-        raise HTTPException(status_code=403, detail="Only teachers can view students")
-
-    students = db.query(models.User).filter(models.User.is_teacher == False).all()
-    return students
