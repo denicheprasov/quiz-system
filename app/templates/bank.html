@@ -219,7 +219,7 @@ function loadTasks(filters) {
             html += 'Задание №' + num + ' (' + count + ' заданий, ' + verifiedCount + ' проверено)';
             html += '</button>';
             html += '</h2>';
-            html += '<div id="collapse' + num + '" class="accordion-collapse collapse show" data-bs-parent="#tasksAccordion">';
+            html += '<div id="collapse' + num + '" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">';
             html += '<div class="accordion-body">';
 
             tasksForNumber.forEach(function(task) {
