@@ -18,7 +18,7 @@
                 
                 <!-- Фильтр -->
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Номер задания в КИМ</label>
                         <select class="form-select" id="filterNumber" onchange="loadTasks()">
                             <option value="">Все номера</option>
@@ -27,11 +27,21 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label class="form-label">Сложность</label>
+                        <select class="form-select" id="filterDifficulty" onchange="loadTasks()">
+                            <option value="">Все</option>
+                            <option value="easy">Изи</option>
+                            <option value="medium">База</option>
+                            <option value="hard">Хард</option>
+                            <option value="impossible">💀 Легче умереть</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label">Поиск</label>
                         <input type="text" class="form-control" id="searchInput" placeholder="Поиск по тексту...">
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
+                    <div class="col-md-3 d-flex align-items-end">
                         <button class="btn btn-primary w-100" onclick="loadTasks()">
                             <i class="bi bi-search"></i> Найти
                         </button>
@@ -70,10 +80,12 @@ function loadTasks() {
     container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
     
     const number = document.getElementById('filterNumber').value;
+    const difficulty = document.getElementById('filterDifficulty').value;
     const search = document.getElementById('searchInput').value.toLowerCase();
     
     let url = '/student/api/bank?limit=1000';
     if (number) url += '&task_number=' + number;
+    if (difficulty) url += '&difficulty=' + difficulty;
     
     fetch(url, {
         credentials: 'include'
@@ -122,11 +134,16 @@ function loadTasks() {
             
             tasksForNumber.forEach(task => {
                 const preview = task.text.length > 80 ? task.text.substring(0, 80) + '...' : task.text;
+                const diffMap = {easy:'Изи',medium:'База',hard:'Хард',impossible:'💀 Легче умереть'};
+                const diffColor = {easy:'success',medium:'warning text-dark',hard:'danger',impossible:'dark'};
                 html += `
                     <a href="#" class="list-group-item list-group-item-action" onclick="viewTask(${task.id})">
-                        <div class="d-flex w-100 justify-content-between">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
                             <span>${preview}</span>
-                            <small class="text-muted">ID: ${task.id}</small>
+                            <div class="d-flex gap-1 align-items-center">
+                                ${task.difficulty && task.difficulty !== 'base' ? `<span class="diff-badge badge bg-${diffColor[task.difficulty] || 'secondary'}">${diffMap[task.difficulty] || task.difficulty}</span>` : ''}
+                                <small class="text-muted">#${task.id}</small>
+                            </div>
                         </div>
                     </a>
                 `;
