@@ -425,9 +425,34 @@ function saveEdit() {
         body: JSON.stringify(data)
     })
     .then(function(r) { return r.json(); })
-    .then(function() {
+    .then(function(task) {
         bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-        loadTasks();
+
+        var card = document.querySelector('.task-card[data-task-id="' + id + '"]');
+        if (card) {
+            var textP = card.querySelector('p:first-of-type');
+            if (textP) textP.innerHTML = (task.text || '').replace(/\n/g, '<br>');
+
+            var answerP = Array.from(card.querySelectorAll('p')).find(function(p) {
+                return p.innerHTML.startsWith('<strong>Ответ:</strong>');
+            });
+            if (answerP) answerP.innerHTML = '<strong>Ответ:</strong> ' + (task.correct_answer || '');
+
+            var img = card.querySelector('img');
+            if (task.image_url) {
+                if (img) {
+                    img.src = task.image_url;
+                } else {
+                    var newImg = document.createElement('img');
+                    newImg.src = task.image_url;
+                    newImg.className = 'img-fluid rounded question-image mb-2';
+                    newImg.style.cssText = 'display:block;margin:8px auto';
+                    textP.parentNode.insertBefore(newImg, textP.nextSibling);
+                }
+            } else if (img) {
+                img.remove();
+            }
+        }
     })
     .catch(function() { alert('Ошибка сохранения'); });
 }
