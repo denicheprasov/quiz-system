@@ -89,7 +89,21 @@ def delete_task(
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
+    deleted_number = task.task_number
+    deleted_order = task.order_in_file
+
     db.delete(task)
+    db.commit()
+
+    # Перенумеровываем order_in_file для оставшихся заданий того же номера
+    remaining = db.query(models.TaskBank).filter(
+        models.TaskBank.task_number == deleted_number,
+        models.TaskBank.order_in_file > deleted_order,
+    ).order_by(models.TaskBank.order_in_file).all()
+
+    for i, t in enumerate(remaining):
+        t.order_in_file = deleted_order + i
+
     db.commit()
     return {"message": "Task deleted successfully"}
 
