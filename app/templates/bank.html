@@ -75,6 +75,7 @@
                             <option value="easy">Изи</option>
                             <option value="medium">База</option>
                             <option value="hard">Хард</option>
+                            <option value="impossible">💀 Легче умереть</option>
                         </select>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
@@ -150,6 +151,7 @@
                         <option value="easy">Изи</option>
                         <option value="medium">База</option>
                         <option value="hard">Хард</option>
+                        <option value="impossible">💀 Легче умереть</option>
                     </select>
                 </div>
             </div>
@@ -251,8 +253,8 @@ function loadTasks(filters) {
                 html += '<span class="fw-bold">#' + task.order_in_file + ' (ID: ' + task.id + ')</span>';
                 html += '<div class="d-flex gap-1 align-items-center">';
                 if (task.difficulty && task.difficulty !== 'base') {
-                    var diffMap = {easy:'Изи',medium:'База',hard:'Хард'};
-                    var diffColor = {easy:'success',medium:'warning text-dark',hard:'danger'};
+                    var diffMap = {easy:'Изи',medium:'База',hard:'Хард',impossible:'💀 Легче умереть'};
+                    var diffColor = {easy:'success',medium:'warning text-dark',hard:'danger',impossible:'dark'};
                     html += '<span class="badge bg-' + diffColor[task.difficulty] + '">' + diffMap[task.difficulty] + '</span>';
                 }
                 html += '<div class="action-cell">' + status + '</div>';
@@ -485,8 +487,8 @@ function saveEdit() {
 
             var diffBadge = card.querySelector('.badge.bg-light.text-dark.border');
             if (task.difficulty && task.difficulty !== 'base') {
-                var diffMap = {easy:'Изи',medium:'База',hard:'Хард'};
-                var diffColor = {easy:'success',medium:'warning text-dark',hard:'danger'};
+                var diffMap = {easy:'Изи',medium:'База',hard:'Хард',impossible:'💀 Легче умереть'};
+                var diffColor = {easy:'success',medium:'warning text-dark',hard:'danger',impossible:'dark'};
                 var label = diffMap[task.difficulty] || task.difficulty;
                 if (diffBadge) {
                     diffBadge.textContent = label;
