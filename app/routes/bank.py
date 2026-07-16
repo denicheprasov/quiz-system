@@ -128,6 +128,8 @@ def update_task(
         task.correct_answer = str(data["correct_answer"])
     if "image_url" in data:
         task.image_url = data["image_url"]
+    if "difficulty" in data:
+        task.difficulty = data["difficulty"] or None
 
     db.commit()
     db.refresh(task)
