@@ -134,6 +134,15 @@
                     <label class="form-label">URL изображения</label>
                     <input type="text" class="form-control" id="editImageUrl">
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">Сложность</label>
+                    <select class="form-select" id="editDifficulty">
+                        <option value="">Без уровня</option>
+                        <option value="easy">🟢 Easy</option>
+                        <option value="medium">🟡 Medium</option>
+                        <option value="hard">🔴 Hard</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
@@ -230,7 +239,13 @@ function loadTasks(filters) {
                 html += '<div class="task-card" data-task-id="' + task.id + '" data-task-number="' + num + '">';
                 html += '<div class="d-flex justify-content-between align-items-start mb-2">';
                 html += '<span class="fw-bold">#' + task.order_in_file + ' (ID: ' + task.id + ')</span>';
+                html += '<div class="d-flex gap-1 align-items-center">';
+                if (task.difficulty && task.difficulty !== 'base') {
+                    var diffMap = {easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
+                    html += '<span class="badge bg-light text-dark border">' + (diffMap[task.difficulty] || task.difficulty) + '</span>';
+                }
                 html += '<div class="action-cell">' + status + '</div>';
+                html += '</div>';
                 html += '</div>';
                 html += '<p class="mb-2">' + task.text.replace(/\n/g, '<br>') + '</p>';
                 if (task.image_url) {
@@ -405,6 +420,7 @@ function editTask(taskId) {
         document.getElementById('editText').value = task.text;
         document.getElementById('editAnswer').value = task.correct_answer || '';
         document.getElementById('editImageUrl').value = task.image_url || '';
+        document.getElementById('editDifficulty').value = task.difficulty || '';
         new bootstrap.Modal(document.getElementById('editModal')).show();
     })
     .catch(function() { alert('Ошибка загрузки задания'); });
@@ -415,7 +431,8 @@ function saveEdit() {
     var data = {
         text: document.getElementById('editText').value,
         correct_answer: document.getElementById('editAnswer').value,
-        image_url: document.getElementById('editImageUrl').value
+        image_url: document.getElementById('editImageUrl').value,
+        difficulty: document.getElementById('editDifficulty').value
     };
 
     fetch('/bank/tasks/' + id, {
@@ -451,6 +468,23 @@ function saveEdit() {
                 }
             } else if (img) {
                 img.remove();
+            }
+
+            var diffBadge = card.querySelector('.badge.bg-light.text-dark.border');
+            if (task.difficulty && task.difficulty !== 'base') {
+                var diffMap = {easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
+                var label = diffMap[task.difficulty] || task.difficulty;
+                if (diffBadge) {
+                    diffBadge.textContent = label;
+                } else {
+                    var newBadge = document.createElement('span');
+                    newBadge.className = 'badge bg-light text-dark border';
+                    newBadge.textContent = label;
+                    var actionCell = card.querySelector('.action-cell');
+                    actionCell.parentNode.insertBefore(newBadge, actionCell);
+                }
+            } else if (diffBadge) {
+                diffBadge.remove();
             }
         }
     })
