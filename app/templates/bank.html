@@ -255,7 +255,7 @@ function loadTasks(filters) {
                 if (task.difficulty && task.difficulty !== 'base') {
                     var diffMap = {easy:'Изи',medium:'База',hard:'Хард',impossible:'💀 Легче умереть'};
                     var diffColor = {easy:'success',medium:'warning text-dark',hard:'danger',impossible:'dark'};
-                    html += '<span class="badge bg-' + diffColor[task.difficulty] + '">' + diffMap[task.difficulty] + '</span>';
+                    html += '<span class="diff-badge badge bg-' + diffColor[task.difficulty] + '">' + diffMap[task.difficulty] + '</span>';
                 }
                 html += '<div class="action-cell">' + status + '</div>';
                 html += '</div>';
@@ -485,19 +485,20 @@ function saveEdit() {
                 img.remove();
             }
 
-            var diffBadge = card.querySelector('.badge.bg-light.text-dark.border');
+            var diffBadge = card.querySelector('.diff-badge');
             if (task.difficulty && task.difficulty !== 'base') {
                 var diffMap = {easy:'Изи',medium:'База',hard:'Хард',impossible:'💀 Легче умереть'};
                 var diffColor = {easy:'success',medium:'warning text-dark',hard:'danger',impossible:'dark'};
                 var label = diffMap[task.difficulty] || task.difficulty;
+                var color = diffColor[task.difficulty] || 'secondary';
                 if (diffBadge) {
                     diffBadge.textContent = label;
-                    diffBadge.className = 'badge bg-' + (diffColor[task.difficulty] || 'secondary');
+                    diffBadge.className = 'diff-badge badge bg-' + color;
                 } else {
-                    var newBadge = document.createElement('span');
-                    newBadge.className = 'badge bg-' + (diffColor[task.difficulty] || 'secondary');
-                    newBadge.textContent = label;
                     var actionCell = card.querySelector('.action-cell');
+                    var newBadge = document.createElement('span');
+                    newBadge.className = 'diff-badge badge bg-' + color;
+                    newBadge.textContent = label;
                     actionCell.parentNode.insertBefore(newBadge, actionCell);
                 }
             } else if (diffBadge) {
