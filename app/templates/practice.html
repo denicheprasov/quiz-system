@@ -170,7 +170,7 @@ function showTask(index) {
                             <span class="text-muted ms-2">Правильный ответ: ${taskData.correct_answer}</span>
                         </div>
                     ` : `
-                        <button class="btn btn-success mt-2" onclick="submitAnswer(${task.id})">
+                        <button class="btn btn-success mt-2" onclick="submitAnswer(${taskData.id})">
                             <i class="bi bi-check"></i> Проверить
                         </button>
                     `}
