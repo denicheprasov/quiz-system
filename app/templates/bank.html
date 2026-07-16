@@ -138,9 +138,9 @@
                     <label class="form-label">Сложность</label>
                     <select class="form-select" id="editDifficulty">
                         <option value="">Без уровня</option>
-                        <option value="easy">🟢 Easy</option>
-                        <option value="medium">🟡 Medium</option>
-                        <option value="hard">🔴 Hard</option>
+                        <option value="easy">🟢 Изи</option>
+                        <option value="medium">🟡 База</option>
+                        <option value="hard">🔴 Хард</option>
                     </select>
                 </div>
             </div>
@@ -241,7 +241,7 @@ function loadTasks(filters) {
                 html += '<span class="fw-bold">#' + task.order_in_file + ' (ID: ' + task.id + ')</span>';
                 html += '<div class="d-flex gap-1 align-items-center">';
                 if (task.difficulty && task.difficulty !== 'base') {
-                    var diffMap = {easy:'🟢 Easy',medium:'🟡 Medium',hard:'🔴 Hard'};
+                    var diffMap = {easy:'🟢 Изи',medium:'🟡 База',hard:'🔴 Хард'};
                     html += '<span class="badge bg-light text-dark border">' + (diffMap[task.difficulty] || task.difficulty) + '</span>';
                 }
                 html += '<div class="action-cell">' + status + '</div>';
