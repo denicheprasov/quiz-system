@@ -125,6 +125,7 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
 def get_student_bank_api(
     request: Request,
     task_number: Optional[int] = None,
+    difficulty: Optional[str] = None,
     limit: int = 100,
     db: Session = Depends(database.get_db),
 ):
@@ -138,6 +139,8 @@ def get_student_bank_api(
 
     if task_number:
         query = query.filter(models.TaskBank.task_number == task_number)
+    if difficulty:
+        query = query.filter(models.TaskBank.difficulty == difficulty)
 
     return (
         query.order_by(models.TaskBank.task_number, models.TaskBank.order_in_file)
