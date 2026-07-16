@@ -313,8 +313,6 @@ function viewTask(taskId) {
 }
 
 function verifyTask(taskId) {
-    if (!confirm('Отметить задание как проверенное?')) return;
-
     fetch('/bank/tasks/' + taskId + '/verify', {
         method: 'POST',
         credentials: 'include'
