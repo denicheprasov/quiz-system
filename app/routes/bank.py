@@ -18,6 +18,7 @@ def get_tasks(
     task_number: Optional[int] = None,
     source_file: Optional[str] = None,
     is_verified: Optional[bool] = None,
+    difficulty: Optional[str] = None,
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
@@ -32,6 +33,8 @@ def get_tasks(
         query = query.filter(models.TaskBank.source_file == source_file)
     if is_verified is not None:
         query = query.filter(models.TaskBank.is_verified == is_verified)
+    if difficulty:
+        query = query.filter(models.TaskBank.difficulty == difficulty)
 
     tasks = (
         query.order_by(models.TaskBank.task_number, models.TaskBank.order_in_file)
