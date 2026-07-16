@@ -134,7 +134,7 @@ class TaskBankBase(BaseModel):
     answer_count: int = 1
     points: int = 1
     topic: Optional[str] = None
-    difficulty: str = "base"
+    difficulty: Optional[str] = None
     tags: Optional[str] = None
     is_verified: bool = False
 
