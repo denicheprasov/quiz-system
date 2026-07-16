@@ -60,7 +60,7 @@
                             <option value="27">27</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Статус</label>
                         <select class="form-select" id="filterStatus">
                             <option value="">Все</option>
@@ -68,9 +68,18 @@
                             <option value="unverified">⏳ Не проверенные</option>
                         </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Сложность</label>
+                        <select class="form-select" id="filterDifficulty">
+                            <option value="">Все</option>
+                            <option value="easy">Изи</option>
+                            <option value="medium">База</option>
+                            <option value="hard">Хард</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
                         <button class="btn btn-primary w-100" onclick="applyFilters()">
-                            <i class="bi bi-search"></i> Применить фильтр
+                            <i class="bi bi-search"></i> Применить
                         </button>
                     </div>
                 </div>
@@ -182,6 +191,7 @@ function loadTasks(filters) {
         if (filters.task_number) url += '&task_number=' + filters.task_number;
         if (filters.is_verified === true) url += '&is_verified=true';
         if (filters.is_verified === false) url += '&is_verified=false';
+        if (filters.difficulty) url += '&difficulty=' + filters.difficulty;
     }
     
     fetch(url, {credentials: 'include'})
@@ -282,10 +292,12 @@ function applyFilters() {
     var filters = {};
     var number = document.getElementById('filterNumber').value;
     var status = document.getElementById('filterStatus').value;
+    var difficulty = document.getElementById('filterDifficulty').value;
     
     if (number) filters.task_number = parseInt(number);
     if (status === 'verified') filters.is_verified = true;
     if (status === 'unverified') filters.is_verified = false;
+    if (difficulty) filters.difficulty = difficulty;
     
     loadTasks(filters);
 }
