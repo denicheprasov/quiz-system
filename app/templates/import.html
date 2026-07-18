@@ -49,7 +49,7 @@
                         <small id="progressText">0%</small>
                     </div>
                     <div class="progress" style="height:12px">
-                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div>
+                        <div id="progressBar" class="progress-bar progress-bar-striped" style="width:0%;transition:width 0.5s ease"></div>
                     </div>
                 </div>
 
@@ -75,15 +75,29 @@ document.querySelector('.import-form').addEventListener('submit', async function
     bar.style.width = '0%';
     text.textContent = '0%';
 
+    // Плавная анимация до 90% пока сервер работает
+    var animId;
+    var pct = 0;
+    function animateProgress() {
+        if (pct < 90) {
+            pct += Math.random() * 5;
+            if (pct > 90) pct = 90;
+            bar.style.width = pct + '%';
+            text.textContent = Math.round(pct) + '%';
+            animId = setTimeout(animateProgress, 400 + Math.random() * 600);
+        }
+    }
+    animateProgress();
+
     const r = await fetch('/bank/import-url', {
         method: 'POST',
         credentials: 'include',
         body: formData
     });
-    const data = await r.json();
 
+    clearTimeout(animId);
     bar.style.width = '100%';
-    bar.classList.remove('progress-bar-animated');
+    text.textContent = '100%';
     text.textContent = '100%';
     await new Promise(r => setTimeout(r, 300));
     progress.classList.add('d-none');
