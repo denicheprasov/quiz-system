@@ -43,6 +43,16 @@
                     </button>
                 </form>
 
+                <div id="progress" class="d-none mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>⏳ Импорт заданий...</small>
+                        <small id="progressText">0%</small>
+                    </div>
+                    <div class="progress" style="height:12px">
+                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div>
+                    </div>
+                </div>
+
                 <div id="result" class="d-none mt-3"></div>
             </div>
         </div>
@@ -55,43 +65,50 @@ document.querySelector('.import-form').addEventListener('submit', async function
     const form = e.target;
     const formData = new FormData(form);
     const result = document.getElementById('result');
+    const progress = document.getElementById('progress');
+    const bar = document.getElementById('progressBar');
+    const text = document.getElementById('progressText');
 
     form.querySelector('button').disabled = true;
     result.classList.add('d-none');
+    progress.classList.remove('d-none');
+    bar.style.width = '0%';
+    text.textContent = '0%';
 
-    try {
-        const r = await fetch('/bank/import-url', {
-            method: 'POST',
-            credentials: 'include',
-            body: formData
-        });
-        const data = await r.json();
-        result.classList.remove('d-none');
+    const r = await fetch('/bank/import-url', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    });
+    const data = await r.json();
 
-        if (data.errors && data.errors.length > 0) {
-            let html = '<div class="alert alert-danger"><h5>❌ Ошибки:</h5><ul>';
-            data.errors.forEach(function(err) { html += '<li>' + err + '</li>'; });
-            html += '</ul></div>';
-            if (data.imported > 0) {
-                html += '<div class="alert alert-warning">Частично импортировано: ' + data.imported + '</div>';
-            }
-            result.innerHTML = html;
-            return;
+    bar.style.width = '100%';
+    bar.classList.remove('progress-bar-animated');
+    text.textContent = '100%';
+    await new Promise(r => setTimeout(r, 300));
+    progress.classList.add('d-none');
+    result.classList.remove('d-none');
+
+    if (data.errors && data.errors.length > 0) {
+        let html = '<div class="alert alert-danger"><h5>❌ Ошибки:</h5><ul>';
+        data.errors.forEach(function(err) { html += '<li>' + err + '</li>'; });
+        html += '</ul></div>';
+        if (data.imported > 0) {
+            html += '<div class="alert alert-warning">Частично импортировано: ' + data.imported + '</div>';
         }
-
-        result.innerHTML = '<div class="alert alert-success">' +
-            '<h5>✅ Импорт завершен!</h5>' +
-            '<ul><li>Всего: ' + (data.total || 0) + '</li>' +
-            '<li>Импортировано: ' + (data.imported || 0) + '</li>' +
-            '<li>Пропущено (дубликаты): ' + (data.skipped || 0) + '</li></ul>' +
-            '<a href="/bank" class="btn btn-primary mt-2">📚 Перейти в банк</a></div>';
-
-    } catch (error) {
-        result.classList.remove('d-none');
-        result.innerHTML = '<div class="alert alert-danger">❌ Ошибка: ' + error.message + '</div>';
-    } finally {
+        result.innerHTML = html;
         form.querySelector('button').disabled = false;
+        return;
     }
+
+    result.innerHTML = '<div class="alert alert-success">' +
+        '<h5>✅ Импорт завершен!</h5>' +
+        '<ul><li>Всего: ' + (data.total || 0) + '</li>' +
+        '<li>Импортировано: ' + (data.imported || 0) + '</li>' +
+        '<li>Пропущено (дубликаты): ' + (data.skipped || 0) + '</li></ul>' +
+        '<a href="/bank" class="btn btn-primary mt-2">📚 Перейти в банк</a></div>';
+
+    form.querySelector('button').disabled = false;
 });
 </script>
 {% endblock %}
