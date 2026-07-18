@@ -63,6 +63,20 @@ except Exception:
     pass
 
 try:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE task_bank ALTER COLUMN image_url TYPE TEXT USING image_url::text"))
+        conn.commit()
+except Exception:
+    pass
+
+try:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE task_bank ALTER COLUMN file_url TYPE TEXT USING file_url::text"))
+        conn.commit()
+except Exception:
+    pass
+
+try:
     Base.metadata.create_all(bind=engine)
 except Exception as e:
     print(f"Failed to create tables: {e}")

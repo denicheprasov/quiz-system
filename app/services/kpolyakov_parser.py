@@ -71,18 +71,19 @@ class KpolyakovParser:
                 urls.append(url)
         return urls
 
-    def _extract_files(self, topic_td: Tag) -> Optional[str]:
+    def _extract_files(self, topic_td: Tag) -> List[str]:
+        file_urls = []
         for script in topic_td.find_all("script"):
             text = script.get_text()
-            match = re.search(r'<a\s+href="([^"]+)"', text)
-            if match:
+            for match in re.finditer(r'<a\s+href="([^"]+)"', text):
                 href = match.group(1)
                 if href.startswith("http"):
-                    return href
-                if href.startswith("/"):
-                    return f"https://kpolyakov.spb.ru{href}"
-                return f"{FILE_BASE_URL}/{href}"
-        return None
+                    file_urls.append(href)
+                elif href.startswith("/"):
+                    file_urls.append(f"https://kpolyakov.spb.ru{href}")
+                else:
+                    file_urls.append(f"{FILE_BASE_URL}/{href}")
+        return file_urls
 
     def _extract_images(self, topic_td: Tag) -> List[str]:
         images = self._extract_images_from_html(str(topic_td))
@@ -134,7 +135,7 @@ class KpolyakovParser:
                 task_text = task_text.strip()
 
                 images = self._extract_images(topic_td)
-                file_url = self._extract_files(topic_td)
+                file_urls = self._extract_files(topic_td)
 
                 task_id = None
                 answer = "0"
@@ -183,8 +184,8 @@ class KpolyakovParser:
                         order_in_file=len(imported) + 1,
                         source_file=f"kpolyakov_{task_id}.html" if task_id else f"kpolyakov_{uuid.uuid4().hex}.html",
                         text=task_text,
-                        image_url=images[0] if images else None,
-                        file_url=file_url,
+                        image_url="\n".join(images) if images else None,
+                        file_url="\n".join(file_urls) if file_urls else None,
                         correct_answer=answer,
                         answer_type=answer_type,
                         answer_count=1,
