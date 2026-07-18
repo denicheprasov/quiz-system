@@ -528,13 +528,15 @@ function deleteAllTasks() {
         if (!confirm('Точно уверены?')) return;
     }
 
-    var statsEl = document.getElementById('stats');
-    statsEl.innerHTML =
-        '<div class="w-100">' +
+    var progressEl = document.createElement('div');
+    progressEl.id = 'deleteProgress';
+    progressEl.innerHTML =
+        '<div class="w-100 mb-2">' +
         '<div class="d-flex justify-content-between mb-1"><small>Удаление...</small><small id="progressText">0%</small></div>' +
         '<div class="progress" style="height:12px">' +
         '<div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div>' +
         '</div></div>';
+    document.getElementById('stats').before(progressEl);
 
     fetch(url, {
         method: 'DELETE',
@@ -548,6 +550,8 @@ function deleteAllTasks() {
         bar.classList.remove('progress-bar-animated');
         text.textContent = '100%';
         setTimeout(function() {
+            var el = document.getElementById('deleteProgress');
+            if (el) el.remove();
             loadTasks();
         }, 400);
     })
