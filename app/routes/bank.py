@@ -153,9 +153,12 @@ def delete_all_tasks(
 
     tasks = query.all()
     count = len(tasks)
-    for task in tasks:
+    for i, task in enumerate(tasks, 1):
         db.query(models.VariantTask).filter(models.VariantTask.task_bank_id == task.id).delete()
         db.query(models.PracticeTask).filter(models.PracticeTask.task_bank_id == task.id).delete()
         db.delete(task)
-    db.commit()
-    return {"message": f"Удалено {count} заданий {label}"}
+        if i % 50 == 0 or i == count:
+            db.commit()
+    if count == 0:
+        db.commit()
+    return {"message": f"Удалено {count} заданий {label}", "count": count}

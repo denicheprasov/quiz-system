@@ -528,18 +528,33 @@ function deleteAllTasks() {
         if (!confirm('Точно уверены?')) return;
     }
 
+    var statsEl = document.getElementById('stats');
+    statsEl.innerHTML =
+        '<div class="w-100">' +
+        '<div class="d-flex justify-content-between mb-1"><small>Удаление...</small><small id="progressText">0%</small></div>' +
+        '<div class="progress" style="height:12px">' +
+        '<div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div>' +
+        '</div></div>';
+
     fetch(url, {
         method: 'DELETE',
         credentials: 'include'
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
-        alert(data.message);
-        loadTasks();
+        var bar = document.getElementById('progressBar');
+        var text = document.getElementById('progressText');
+        bar.style.width = '100%';
+        bar.classList.remove('progress-bar-animated');
+        text.textContent = '100%';
+        setTimeout(function() {
+            loadTasks();
+        }, 400);
     })
     .catch(function(error) {
         alert('Ошибка при очистке');
         console.error('Error:', error);
+        loadTasks();
     });
 }
 
