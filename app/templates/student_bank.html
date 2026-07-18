@@ -23,7 +23,9 @@
                         <select class="form-select" id="filterNumber" onchange="loadTasks()">
                             <option value="">Все номера</option>
                             {% for i in range(1, 28) %}
-                            <option value="{{ i }}">{{ i }}</option>
+                            {% if i not in (20, 21) %}
+                            <option value="{{ i }}">{% if i == 19 %}19 (Теория игр){% else %}{{ i }}{% endif %}</option>
+                            {% endif %}
                             {% endfor %}
                         </select>
                     </div>
