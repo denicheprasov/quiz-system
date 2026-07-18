@@ -258,11 +258,6 @@ function loadTasks(filters) {
                 html += '</div>';
                 html += '</div>';
                 html += '<p class="mb-2">' + task.text.replace(/\n/g, '<br>') + '</p>';
-                if (task.image_url) {
-                    task.image_url.split('\n').forEach(function(url) {
-                        html += '<img src="' + url + '" class="img-fluid rounded question-image mb-2" style="display:block;margin:8px auto;max-width:400px">';
-                    });
-                }
                 if (task.file_url) {
                     task.file_url.split('\n').forEach(function(url) {
                         html += '<p class="mb-1"><a href="' + url + '" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>';
@@ -316,12 +311,7 @@ function viewTask(taskId) {
         html += '<h6>' + (task.task_number == 19 ? 'Теория игр' : 'Задание №' + task.task_number) + ' (ID: ' + task.id + ')</h6>';
         html += '<hr>';
         html += '<p><strong>Текст:</strong></p>';
-        html += '<div class="p-2 bg-light">' + task.text.replace(/\n/g, '<br>') + '</div>';
-        if (task.image_url) {
-            task.image_url.split('\n').forEach(function(url) {
-                html += '<div class="mt-2"><img src="' + url + '" class="img-fluid rounded question-image"></div>';
-            });
-        }
+            html += '<div class="p-2 bg-light">' + task.text.replace(/\n/g, '<br>') + '</div>';
         if (task.file_url) {
             task.file_url.split('\n').forEach(function(url) {
                 html += '<p class="mt-1"><a href="' + url + '" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>';
