@@ -36,6 +36,13 @@ for col in ["score", "total", "results"]:
 
 try:
     with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE task_bank ALTER COLUMN correct_answer TYPE TEXT USING correct_answer::text"))
+        conn.commit()
+except Exception:
+    pass
+
+try:
+    with engine.connect() as conn:
         conn.execute(text("ALTER TABLE variant_assignments ADD COLUMN due_date TIMESTAMP"))
         conn.commit()
 except Exception:
