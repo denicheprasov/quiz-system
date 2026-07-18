@@ -221,7 +221,8 @@ function loadTasks(filters) {
             html += '<div class="accordion-item">';
             html += '<h2 class="accordion-header">';
             html += '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + num + '">';
-            html += 'Задание №' + num + ' (' + count + ' заданий)';
+            var numLabel = num == 19 ? 'Теория игр' : '№' + num;
+            html += 'Задание ' + numLabel + ' (' + count + ' заданий)';
             html += '</button>';
             html += '</h2>';
             html += '<div id="collapse' + num + '" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">';
@@ -292,7 +293,7 @@ function viewTask(taskId) {
     .then(function(task) {
         var html = '<div class="card">';
         html += '<div class="card-body">';
-        html += '<h6>Задание №' + task.task_number + ' (ID: ' + task.id + ')</h6>';
+        html += '<h6>Задание ' + (task.task_number == 19 ? 'Теория игр' : '№' + task.task_number) + ' (ID: ' + task.id + ')</h6>';
         html += '<hr>';
         html += '<p><strong>Текст:</strong></p>';
         html += '<div class="p-2 bg-light">' + task.text.replace(/\n/g, '<br>') + '</div>';
@@ -363,7 +364,8 @@ function updateStats() {
         var btn = item.querySelector('.accordion-button');
         var num = item.id ? item.id.replace('accordion-item-', '') : '';
         if (btn) {
-            btn.textContent = 'Задание №' + num + ' (' + totalInItem + ' заданий)';
+            var numLabel = num == 19 ? 'Теория игр' : '№' + num;
+            btn.textContent = 'Задание ' + numLabel + ' (' + totalInItem + ' заданий)';
         }
     });
 }
