@@ -309,7 +309,6 @@ function deleteVariant(variantId) {
         return response.json();
     })
     .then(function(data) {
-        alert('Вариант удален!');
         loadVariants();
     })
     .catch(function(error) {
