@@ -43,17 +43,26 @@
                     </button>
                 </form>
 
-                <div id="progress" class="d-none mt-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <small>⏳ Импорт заданий...</small>
-                        <small id="progressText">0%</small>
-                    </div>
-                    <div class="progress" style="height:12px">
-                        <div id="progressBar" class="progress-bar progress-bar-striped" style="width:0%;transition:width 0.5s ease"></div>
-                    </div>
-                </div>
-
                 <div id="result" class="d-none mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка прогресса импорта -->
+<div class="modal fade" id="importProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="mb-3"><div class="spinner-border text-primary" role="status"></div></div>
+                <h6>⏳ Импорт заданий...</h6>
+                <div class="d-flex justify-content-between mb-1 small">
+                    <span>Обработка</span>
+                    <span id="importProgressText">0%</span>
+                </div>
+                <div class="progress" style="height:10px">
+                    <div id="importProgressBar" class="progress-bar progress-bar-striped" style="width:0%;transition:width 0.5s ease"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -65,13 +74,14 @@ document.querySelector('.import-form').addEventListener('submit', async function
     const form = e.target;
     const formData = new FormData(form);
     const result = document.getElementById('result');
-    const progress = document.getElementById('progress');
-    const bar = document.getElementById('progressBar');
-    const text = document.getElementById('progressText');
 
     form.querySelector('button').disabled = true;
     result.classList.add('d-none');
-    progress.classList.remove('d-none');
+
+    var modal = new bootstrap.Modal(document.getElementById('importProgressModal'));
+    modal.show();
+    var bar = document.getElementById('importProgressBar');
+    var text = document.getElementById('importProgressText');
     bar.style.width = '0%';
     text.textContent = '0%';
 
@@ -100,7 +110,7 @@ document.querySelector('.import-form').addEventListener('submit', async function
     bar.style.width = '100%';
     text.textContent = '100%';
     await new Promise(r => setTimeout(r, 300));
-    progress.classList.add('d-none');
+    modal.hide();
     result.classList.remove('d-none');
 
     if (data.errors && data.errors.length > 0) {

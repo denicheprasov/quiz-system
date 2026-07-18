@@ -171,6 +171,24 @@
     </div>
 </div>
 
+<div class="modal fade" id="deleteProgressModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="mb-3"><div class="spinner-border text-danger" role="status"></div></div>
+                <h6>🗑️ Удаление заданий...</h6>
+                <div class="d-flex justify-content-between mb-1 small">
+                    <span>Прогресс</span>
+                    <span id="deleteProgressText">0%</span>
+                </div>
+                <div class="progress" style="height:10px">
+                    <div id="deleteProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-danger" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function loadTasks(filters) {
     var container = document.getElementById('tasksList');
@@ -530,20 +548,15 @@ function deleteAllTasks() {
         if (!confirm('Точно уверены?')) return;
     }
 
-    var progressEl = document.createElement('div');
-    progressEl.id = 'deleteProgress';
-    progressEl.innerHTML =
-        '<div class="w-100 mb-2">' +
-        '<div class="d-flex justify-content-between mb-1"><small>Удаление ' + label + '...</small><small id="progressText">0%</small></div>' +
-        '<div class="progress" style="height:12px">' +
-        '<div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div>' +
-        '</div></div>';
-    document.getElementById('stats').before(progressEl);
+    var modal = new bootstrap.Modal(document.getElementById('deleteProgressModal'));
+    modal.show();
+    var bar = document.getElementById('deleteProgressBar');
+    var text = document.getElementById('deleteProgressText');
+    bar.style.width = '0%';
+    text.textContent = '0%';
 
     var totalDeleted = 0;
     var totalTasks = 0;
-    var bar = document.getElementById('progressBar');
-    var text = document.getElementById('progressText');
 
     function deleteBatch() {
         fetch(baseUrl, {method: 'DELETE', credentials: 'include'})
@@ -559,8 +572,7 @@ function deleteAllTasks() {
             } else {
                 bar.classList.remove('progress-bar-animated');
                 setTimeout(function() {
-                    var el = document.getElementById('deleteProgress');
-                    if (el) el.remove();
+                    modal.hide();
                     loadTasks();
                 }, 300);
             }
@@ -568,8 +580,8 @@ function deleteAllTasks() {
         .catch(function(error) {
             alert('Ошибка при очистке');
             console.error('Error:', error);
-            var el = document.getElementById('deleteProgress');
-            if (el) el.remove();
+            var el = document.getElementById('deleteProgressModal');
+            if (el) { var m = bootstrap.Modal.getInstance(el); if (m) m.hide(); }
             loadTasks();
         });
     }
