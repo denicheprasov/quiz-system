@@ -139,6 +139,7 @@ def update_task(
 @router.delete("/tasks")
 def delete_all_tasks(
     task_number: Optional[int] = None,
+    batch_size: Optional[int] = None,
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
@@ -146,19 +147,27 @@ def delete_all_tasks(
         raise HTTPException(status_code=403, detail="Only teachers can delete tasks")
 
     query = db.query(models.TaskBank)
-    label = "всех"
     if task_number:
         query = query.filter(models.TaskBank.task_number == task_number)
         label = f"№{task_number}"
+    else:
+        label = "всех"
 
-    tasks = query.all()
-    count = len(tasks)
-    for i, task in enumerate(tasks, 1):
+    total = query.count()
+    if total == 0:
+        return {"message": "Нет заданий для удаления", "deleted": 0, "total": 0}
+
+    tasks = query.limit(batch_size or total).all()
+    deleted = 0
+    for task in tasks:
         db.query(models.VariantTask).filter(models.VariantTask.task_bank_id == task.id).delete()
         db.query(models.PracticeTask).filter(models.PracticeTask.task_bank_id == task.id).delete()
         db.delete(task)
-        if i % 50 == 0 or i == count:
-            db.commit()
-    if count == 0:
-        db.commit()
-    return {"message": f"Удалено {count} заданий {label}", "count": count}
+        deleted += 1
+    db.commit()
+
+    return {
+        "message": f"Удалено {deleted} из {total} заданий {label}",
+        "deleted": deleted,
+        "total": total,
+    }
