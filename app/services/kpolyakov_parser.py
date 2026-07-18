@@ -31,9 +31,22 @@ class KpolyakovParser:
             raw = match.group(1)
             raw = raw.replace("<br/>", "\n").replace("<br>", "\n")
             raw = raw.replace("<pre>", "\n").replace("</pre>", "\n")
+
+            # Преобразуем <img src="..."> в полные URL до удаления тегов
+            def resolve_img(m):
+                src = m.group(1)
+                if src.startswith("http"):
+                    url = src
+                elif src.startswith("/"):
+                    url = f"https://kpolyakov.spb.ru{src}"
+                else:
+                    url = f"{IMAGE_BASE_URL}/{src}"
+                return f'<img src="{url}" class="img-fluid rounded question-image my-2" style="display:block;margin:8px auto">'
+            raw = re.sub(r'<img\s+src="([^"]+)"[^>]*>', resolve_img, raw)
+
             raw = re.sub(r'<a\s+href="[^"]+"[^>]*>([^<]+)</a>', r'\1', raw)
-            raw = re.sub(r"<(?!sup>|/sup>|sub>|/sub>|br>|br/>)[a-zA-Z/][^>]*>", "", raw)
-            raw = re.sub(r"<(?!sup>|/sup>|sub>|/sub>|br>)", "&lt;", raw)
+            raw = re.sub(r"<(?!sup>|/sup>|sub>|/sub>|img |br>|br/>)[a-zA-Z/][^>]*>", "", raw)
+            raw = re.sub(r"<(?!sup>|/sup>|sub>|/sub>|img |br>)", "&lt;", raw)
             raw = raw.replace("&nbsp;", " ").replace("&gt;", ">")
             raw = raw.replace("&amp;", "&").replace("&middot;", "·")
             raw = raw.replace("&le;", "≤").replace("&ge;", "≥").replace("&ne;", "≠")
@@ -87,9 +100,6 @@ class KpolyakovParser:
 
     def _extract_images(self, topic_td: Tag) -> List[str]:
         images = self._extract_images_from_html(str(topic_td))
-        for script in topic_td.find_all("script"):
-            script_text = script.get_text()
-            images.extend(self._extract_images_from_html(script_text))
         return images
 
     def parse_page(self, url: str = None, html: str = None, task_number: int = 0, db_session=None) -> Dict:
