@@ -34,6 +34,10 @@ class KpolyakovParser:
             raw = re.sub(r"<(?!sup>|/sup>|sub>|/sub>|br>|br/>)[^>]+>", "", raw)
             raw = raw.replace("&nbsp;", " ").replace("&lt;", "<").replace("&gt;", ">")
             raw = raw.replace("&amp;", "&").replace("&middot;", "·")
+            raw = raw.replace("&le;", "≤").replace("&ge;", "≥").replace("&ne;", "≠")
+            raw = raw.replace("&and;", "∧").replace("&or;", "∨").replace("&not;", "¬")
+            raw = raw.replace("&rarr;", "→").replace("&equiv;", "≡")
+            raw = raw.replace("&minus;", "−")
             return raw.strip()
         return ""
 
