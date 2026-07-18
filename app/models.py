@@ -96,7 +96,7 @@ class TaskBank(Base):
     file_url = Column(String(500), nullable=True)
     table_data = Column(Text, nullable=True)
     question = Column(Text, nullable=True)
-    correct_answer = Column(String(50), nullable=False)
+    correct_answer = Column(Text, nullable=False)
     answer_type = Column(String(20), default="int")
     answer_count = Column(Integer, default=1)
     points = Column(Integer, default=1)
