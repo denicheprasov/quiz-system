@@ -136,7 +136,7 @@ class TaskBankBase(BaseModel):
     topic: Optional[str] = None
     difficulty: Optional[str] = None
     tags: Optional[str] = None
-    is_verified: bool = False
+    is_verified: bool = True
 
 
 class TaskBankCreate(TaskBankBase):

@@ -17,7 +17,6 @@ def get_tasks(
     limit: int = 9999,
     task_number: Optional[int] = None,
     source_file: Optional[str] = None,
-    is_verified: Optional[bool] = None,
     difficulty: Optional[str] = None,
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user),
@@ -31,8 +30,6 @@ def get_tasks(
         query = query.filter(models.TaskBank.task_number == task_number)
     if source_file:
         query = query.filter(models.TaskBank.source_file == source_file)
-    if is_verified is not None:
-        query = query.filter(models.TaskBank.is_verified == is_verified)
     if difficulty:
         query = query.filter(models.TaskBank.difficulty == difficulty)
 
@@ -162,22 +159,3 @@ def delete_all_tasks(
         db.delete(task)
     db.commit()
     return {"message": f"Удалено {count} заданий {label}"}
-
-
-@router.post("/tasks/{task_id}/verify")
-def verify_task(
-    task_id: int,
-    db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(auth.get_current_user),
-):
-    if not current_user.is_teacher:
-        raise HTTPException(status_code=403, detail="Only teachers can verify tasks")
-
-    task = db.query(models.TaskBank).filter(models.TaskBank.id == task_id).first()
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    task.is_verified = True
-    db.commit()
-
-    return {"message": "Task verified successfully"}

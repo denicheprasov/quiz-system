@@ -104,7 +104,7 @@ class TaskBank(Base):
     topic = Column(String(100), nullable=True)
     difficulty = Column(String(20), default="base")
     tags = Column(String(255), nullable=True)
-    is_verified = Column(Boolean, default=False)
+    is_verified = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     variant_tasks = relationship("VariantTask", back_populates="task")

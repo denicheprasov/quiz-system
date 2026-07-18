@@ -27,7 +27,7 @@
             <div class="card-body">
                 <!-- Фильтры -->
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Номер задания в КИМ</label>
                         <select class="form-select" id="filterNumber">
                             <option value="">Все номера</option>
@@ -61,14 +61,6 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Статус</label>
-                        <select class="form-select" id="filterStatus">
-                            <option value="">Все</option>
-                            <option value="verified">✅ Проверенные</option>
-                            <option value="unverified">⏳ Не проверенные</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
                         <label class="form-label">Сложность</label>
                         <select class="form-select" id="filterDifficulty">
                             <option value="">Все</option>
@@ -78,7 +70,7 @@
                             <option value="impossible">💀 Легче умереть</option>
                         </select>
                     </div>
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-md-3 d-flex align-items-end">
                         <button class="btn btn-primary w-100" onclick="applyFilters()">
                             <i class="bi bi-search"></i> Применить
                         </button>
@@ -90,8 +82,6 @@
                     <div class="col-md-12">
                         <div id="stats" class="d-flex gap-3 flex-wrap">
                             <span class="badge bg-primary">Всего: <span id="totalCount">0</span></span>
-                            <span class="badge bg-success">Проверено: <span id="verifiedCount">0</span></span>
-                            <span class="badge bg-warning text-dark">Не проверено: <span id="unverifiedCount">0</span></span>
                             <span class="badge bg-info">Номера в банке: <span id="numberCount">0</span></span>
                         </div>
                     </div>
@@ -191,8 +181,6 @@ function loadTasks(filters) {
     var url = '/bank/tasks?limit=9999';
     if (filters) {
         if (filters.task_number) url += '&task_number=' + filters.task_number;
-        if (filters.is_verified === true) url += '&is_verified=true';
-        if (filters.is_verified === false) url += '&is_verified=false';
         if (filters.difficulty) url += '&difficulty=' + filters.difficulty;
     }
     
@@ -201,12 +189,9 @@ function loadTasks(filters) {
         return response.json();
     })
     .then(function(tasks) {
-        var verified = tasks.filter(function(t) { return t.is_verified; }).length;
         var numbers = new Set(tasks.map(function(t) { return t.task_number; }));
         
         document.getElementById('totalCount').textContent = tasks.length;
-        document.getElementById('verifiedCount').textContent = verified;
-        document.getElementById('unverifiedCount').textContent = tasks.length - verified;
         document.getElementById('numberCount').textContent = numbers.size;
         
         if (tasks.length === 0) {
@@ -232,21 +217,17 @@ function loadTasks(filters) {
         sortedNumbers.forEach(function(num) {
             var tasksForNumber = grouped[num];
             var count = tasksForNumber.length;
-            var verifiedCount = tasksForNumber.filter(function(t) { return t.is_verified; }).length;
-            
+
             html += '<div class="accordion-item">';
             html += '<h2 class="accordion-header">';
             html += '<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse' + num + '">';
-            html += 'Задание №' + num + ' (' + count + ' заданий, ' + verifiedCount + ' проверено)';
+            html += 'Задание №' + num + ' (' + count + ' заданий)';
             html += '</button>';
             html += '</h2>';
             html += '<div id="collapse' + num + '" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">';
             html += '<div class="accordion-body">';
 
             tasksForNumber.forEach(function(task) {
-                var status = task.is_verified ?
-                    '<span class="badge bg-success">✅ Проверено</span>' :
-                    '<span class="badge bg-warning text-dark">⏳ Не проверено</span>';
 
                 html += '<div class="task-card" data-task-id="' + task.id + '" data-task-number="' + num + '">';
                 html += '<div class="d-flex justify-content-between align-items-start mb-2">';
@@ -257,7 +238,6 @@ function loadTasks(filters) {
                     var diffColor = {easy:'success',medium:'warning text-dark',hard:'danger',impossible:'dark'};
                     html += '<span class="diff-badge badge bg-' + diffColor[task.difficulty] + '">' + diffMap[task.difficulty] + '</span>';
                 }
-                html += '<div class="action-cell">' + status + '</div>';
                 html += '</div>';
                 html += '</div>';
                 html += '<p class="mb-2">' + task.text.replace(/\n/g, '<br>') + '</p>';
@@ -271,9 +251,6 @@ function loadTasks(filters) {
                 html += '<div class="d-flex gap-1 mt-2">';
                 html += '<button class="btn btn-warning btn-sm" onclick="editTask(' + task.id + ')">✏️</button>';
                 html += '<button class="btn btn-secondary btn-sm" onclick="addToVariant(' + task.id + ')">📋</button>';
-                if (!task.is_verified) {
-                    html += '<button class="btn btn-success btn-sm" onclick="verifyTask(' + task.id + ')">✅</button>';
-                }
                 html += '<button class="btn btn-danger btn-sm" onclick="deleteTask(' + task.id + ')">🗑️</button>';
                 html += '</div>';
                 html += '</div>';
@@ -293,12 +270,9 @@ function loadTasks(filters) {
 function applyFilters() {
     var filters = {};
     var number = document.getElementById('filterNumber').value;
-    var status = document.getElementById('filterStatus').value;
     var difficulty = document.getElementById('filterDifficulty').value;
     
     if (number) filters.task_number = parseInt(number);
-    if (status === 'verified') filters.is_verified = true;
-    if (status === 'unverified') filters.is_verified = false;
     if (difficulty) filters.difficulty = difficulty;
     
     loadTasks(filters);
@@ -333,36 +307,11 @@ function viewTask(taskId) {
             html += '<div class="p-2 bg-light"><pre>' + task.table_data + '</pre></div>';
         }
         html += '<p class="mt-3"><strong>Правильный ответ:</strong> ' + task.correct_answer + '</p>';
-        html += '<p><strong>Статус:</strong> ' + (task.is_verified ? '✅ Проверено' : '⏳ Не проверено') + '</p>';
         html += '</div></div>';
         container.innerHTML = html;
     })
     .catch(function(error) {
         container.innerHTML = '<div class="alert alert-danger">❌ Ошибка загрузки</div>';
-    });
-}
-
-function verifyTask(taskId) {
-    fetch('/bank/tasks/' + taskId + '/verify', {
-        method: 'POST',
-        credentials: 'include'
-    })
-    .then(function(response) {
-        return response.json();
-    })
-    .then(function() {
-        var card = document.querySelector('.task-card[data-task-id="' + taskId + '"]');
-        if (card) {
-            var actionCell = card.querySelector('.action-cell');
-            if (actionCell) actionCell.innerHTML = '<span class="badge bg-success">Проверено</span>';
-            var btn = card.querySelector('.btn-success');
-            if (btn) btn.remove();
-            updateStats();
-        }
-    })
-    .catch(function(error) {
-        alert('Ошибка при подтверждении');
-        console.error('Error:', error);
     });
 }
 
@@ -398,31 +347,23 @@ function deleteTask(taskId) {
 function updateStats() {
     var cards = document.querySelectorAll('#tasksAccordion .task-card');
     var total = cards.length;
-    var verified = 0;
     var numbers = new Set();
 
     cards.forEach(function(c) {
         var num = c.getAttribute('data-task-number');
         if (num) numbers.add(num);
-        if (c.querySelector('.badge.bg-success')) verified++;
     });
 
     document.getElementById('totalCount').textContent = total;
-    document.getElementById('verifiedCount').textContent = verified;
-    document.getElementById('unverifiedCount').textContent = total - verified;
     document.getElementById('numberCount').textContent = numbers.size;
 
     document.querySelectorAll('#tasksAccordion .accordion-item').forEach(function(item) {
         var itemCards = item.querySelectorAll('.task-card');
         var totalInItem = itemCards.length;
-        var verifiedInItem = 0;
-        itemCards.forEach(function(c) {
-            if (c.querySelector('.badge.bg-success')) verifiedInItem++;
-        });
         var btn = item.querySelector('.accordion-button');
         var num = item.id ? item.id.replace('accordion-item-', '') : '';
         if (btn) {
-            btn.textContent = 'Задание №' + num + ' (' + totalInItem + ' заданий, ' + verifiedInItem + ' проверено)';
+            btn.textContent = 'Задание №' + num + ' (' + totalInItem + ' заданий)';
         }
     });
 }
