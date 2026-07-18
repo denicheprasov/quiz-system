@@ -568,7 +568,7 @@ function deleteAllTasks() {
             if (pct > 100) pct = 100;
             bar.style.width = pct + '%';
             text.textContent = pct + '%';
-            if (data.deleted > 0) {
+            if (data.deleted > 0 && data.total > 0) {
                 deleteBatch();
             } else {
                 bar.classList.remove('progress-bar-animated');
