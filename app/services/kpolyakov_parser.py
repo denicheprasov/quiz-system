@@ -41,7 +41,7 @@ class KpolyakovParser:
                     url = f"https://kpolyakov.spb.ru{src}"
                 else:
                     url = f"{IMAGE_BASE_URL}/{src}"
-                return f'<img src="{url}" class="img-fluid question-image" style="display:inline;vertical-align:middle">'
+                return f'<img src="{url}" class="img-fluid question-image" style="display:block;margin:8px auto">'
             raw = re.sub(r'<img\s+src="([^"]+)"[^>]*>', resolve_img, raw)
 
             raw = re.sub(r'<a\s+href="[^"]+"[^>]*>([^<]+)</a>', r'\1', raw)
