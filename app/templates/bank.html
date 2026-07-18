@@ -517,12 +517,14 @@ function deleteAllTasks() {
     var num = prompt('Введите номер задания для удаления (1-27)\nОставьте пустым, чтобы удалить все:');
     if (num === null) return;
 
-    var url = '/bank/tasks';
+    var baseUrl = '/bank/tasks?batch_size=50';
+    var label = 'всех заданий';
     if (num.trim() !== '') {
         var n = parseInt(num);
         if (n < 1 || n > 27 || isNaN(n)) { alert('Номер должен быть от 1 до 27'); return; }
         if (!confirm('Удалить все задания №' + n + '?')) return;
-        url += '?task_number=' + n;
+        baseUrl += '&task_number=' + n;
+        label = 'заданий №' + n;
     } else {
         if (!confirm('Удалить ВСЕ задания из банка? Это действие нельзя отменить.')) return;
         if (!confirm('Точно уверены?')) return;
@@ -532,34 +534,47 @@ function deleteAllTasks() {
     progressEl.id = 'deleteProgress';
     progressEl.innerHTML =
         '<div class="w-100 mb-2">' +
-        '<div class="d-flex justify-content-between mb-1"><small>Удаление...</small><small id="progressText">0%</small></div>' +
+        '<div class="d-flex justify-content-between mb-1"><small>Удаление ' + label + '...</small><small id="progressText">0%</small></div>' +
         '<div class="progress" style="height:12px">' +
         '<div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div>' +
         '</div></div>';
     document.getElementById('stats').before(progressEl);
 
-    fetch(url, {
-        method: 'DELETE',
-        credentials: 'include'
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        var bar = document.getElementById('progressBar');
-        var text = document.getElementById('progressText');
-        bar.style.width = '100%';
-        bar.classList.remove('progress-bar-animated');
-        text.textContent = '100%';
-        setTimeout(function() {
+    var totalDeleted = 0;
+    var totalTasks = 0;
+    var bar = document.getElementById('progressBar');
+    var text = document.getElementById('progressText');
+
+    function deleteBatch() {
+        fetch(baseUrl, {method: 'DELETE', credentials: 'include'})
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            totalDeleted += data.deleted || 0;
+            totalTasks = data.total || totalDeleted;
+            var pct = totalTasks > 0 ? Math.round(totalDeleted / totalTasks * 100) : 100;
+            bar.style.width = pct + '%';
+            text.textContent = pct + '%';
+            if (data.deleted > 0 && totalDeleted < totalTasks) {
+                deleteBatch();
+            } else {
+                bar.classList.remove('progress-bar-animated');
+                setTimeout(function() {
+                    var el = document.getElementById('deleteProgress');
+                    if (el) el.remove();
+                    loadTasks();
+                }, 300);
+            }
+        })
+        .catch(function(error) {
+            alert('Ошибка при очистке');
+            console.error('Error:', error);
             var el = document.getElementById('deleteProgress');
             if (el) el.remove();
             loadTasks();
-        }, 400);
-    })
-    .catch(function(error) {
-        alert('Ошибка при очистке');
-        console.error('Error:', error);
-        loadTasks();
-    });
+        });
+    }
+
+    deleteBatch();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
