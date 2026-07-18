@@ -31,6 +31,8 @@ class KpolyakovParser:
             raw = match.group(1)
             raw = raw.replace("<br/>", "\n").replace("<br>", "\n")
             raw = re.sub(r'<a\s+href="[^"]+"[^>]*>([^<]+)</a>', r'\1', raw)
+            raw = raw.replace("<sup>", "^(").replace("</sup>", ")")
+            raw = raw.replace("<sub>", "_(").replace("</sub>", ")")
             raw = re.sub(r"<[^>]+>", "", raw)
             raw = raw.replace("&nbsp;", " ").replace("&lt;", "<").replace("&gt;", ">")
             raw = raw.replace("&amp;", "&")
