@@ -39,6 +39,8 @@ class KpolyakovParser:
             raw = raw.replace("&and;", "∧").replace("&or;", "∨").replace("&not;", "¬")
             raw = raw.replace("&rarr;", "→").replace("&equiv;", "≡")
             raw = raw.replace("&minus;", "−")
+            raw = raw.replace("<b>Вопрос 1.</b>", "№19").replace("<b>Вопрос 2.</b>", "№20").replace("<b>Вопрос 3.</b>", "№21")
+            raw = raw.replace("Вопрос 1.", "№19").replace("Вопрос 2.", "№20").replace("Вопрос 3.", "№21")
             return raw.strip()
         return ""
 
@@ -154,6 +156,7 @@ class KpolyakovParser:
                                 ans_match = re.search(r"changeImageFilePath\('([^']*)'\)", ans_text)
                                 if ans_match:
                                     answer = ans_match.group(1).strip()
+                                    answer = answer.replace("1)", "19)").replace("2)", "20)").replace("3)", "21)")
 
                 if not task_text or not has_answer:
                     i += 1
