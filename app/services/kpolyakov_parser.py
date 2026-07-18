@@ -180,7 +180,6 @@ class KpolyakovParser:
                         answer_type=answer_type,
                         answer_count=1,
                         points=1,
-                        is_verified=False,
                     )
                     db_session.add(task)
                     db_session.commit()
