@@ -96,8 +96,8 @@ document.querySelector('.import-form').addEventListener('submit', async function
     });
 
     clearTimeout(animId);
+    const data = await r.json();
     bar.style.width = '100%';
-    text.textContent = '100%';
     text.textContent = '100%';
     await new Promise(r => setTimeout(r, 300));
     progress.classList.add('d-none');
