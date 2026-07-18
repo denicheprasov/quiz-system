@@ -565,17 +565,20 @@ function deleteAllTasks() {
 
     var totalDeleted = 0;
     var totalTasks = 0;
+    var maxTasks = 0;
 
     function deleteBatch() {
         fetch(baseUrl, {method: 'DELETE', credentials: 'include'})
         .then(function(r) { return r.json(); })
         .then(function(data) {
             totalDeleted += data.deleted || 0;
-            totalTasks = data.total || totalDeleted;
+            if (maxTasks === 0) maxTasks = data.total || totalDeleted;
+            totalTasks = maxTasks;
             var pct = totalTasks > 0 ? Math.round(totalDeleted / totalTasks * 100) : 100;
+            if (pct > 100) pct = 100;
             bar.style.width = pct + '%';
             text.textContent = pct + '%';
-            if (data.deleted > 0 && totalDeleted < totalTasks) {
+            if (data.deleted > 0) {
                 deleteBatch();
             } else {
                 bar.classList.remove('progress-bar-animated');

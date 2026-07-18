@@ -157,7 +157,7 @@ def delete_all_tasks(
     if total == 0:
         return {"message": "Нет заданий для удаления", "deleted": 0, "total": 0}
 
-    tasks = query.limit(batch_size or total).all()
+    tasks = query.order_by(models.TaskBank.id).limit(batch_size or total).all()
     deleted = 0
     for task in tasks:
         db.query(models.VariantTask).filter(models.VariantTask.task_bank_id == task.id).delete()
