@@ -113,8 +113,8 @@ function checkAll() {
 
         card.classList.remove('correct', 'incorrect');
         function norm(s) { return ((s || '').replace(/\d+\)/g, '')).replace(/<br\/>/g, ' ').replace(/\n/g, ' ').match(/-?\d+/g) || []; }
-        var userNums = norm(userAnswer).sort(function(a,b){return a-b;}).join(',');
-        var correctNums = norm(correctAnswer).sort(function(a,b){return a-b;}).join(',');
+        var userNums = norm(userAnswer).join(',');
+        var correctNums = norm(correctAnswer).join(',');
         var isCorrect = userNums === correctNums;
         card.classList.add(isCorrect ? 'correct' : 'incorrect');
 
