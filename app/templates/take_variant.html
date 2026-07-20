@@ -60,11 +60,25 @@ async function loadVariant() {
         html += '<div class="mb-3" data-answer-count="' + (task.answer_count || 1) + '" data-correct="' + task.correct_answer + '">';
         html += '<label class="form-label">Ваш ответ:</label>';
         var ac = task.answer_count || 1;
-        html += '<div class="d-flex gap-2">';
-        for (var ai = 0; ai < ac; ai++) {
-            html += '<input type="text" class="form-control answer-input" data-ai="' + ai + '" data-id="' + vt.id + '" style="width:120px">';
+        if (task.task_number == 19) {
+            var layout = [1, 2, 1];
+            var labels = ['№ 19', '№ 20', '№ 21'];
+            var ai = 0;
+            for (var row = 0; row < layout.length; row++) {
+                html += '<div class="mb-2"><small class="text-muted fw-bold">' + labels[row] + '</small><div class="d-flex gap-2 mt-1">';
+                for (var j = 0; j < layout[row]; j++) {
+                    html += '<input type="text" class="form-control answer-input" data-ai="' + ai + '" data-id="' + vt.id + '" style="width:120px">';
+                    ai++;
+                }
+                html += '</div></div>';
+            }
+        } else {
+            html += '<div class="d-flex gap-2">';
+            for (var ai2 = 0; ai2 < ac; ai2++) {
+                html += '<input type="text" class="form-control answer-input" data-ai="' + ai2 + '" data-id="' + vt.id + '" style="width:120px">';
+            }
+            html += '</div>';
         }
-        html += '</div>';
         html += '</div>';
         html += '<div class="result-feedback mt-1"></div>';
         html += '<div class="retry-btn mt-1"></div>';

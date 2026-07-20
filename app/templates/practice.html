@@ -142,16 +142,31 @@ document.getElementById('startForm').addEventListener('submit', async function(e
 
 function generateAnswerInputs(taskData, answered, userAnswer) {
     var count = taskData.answer_count || 1;
-    var html = '<div class="d-flex gap-2">';
-    for (var i = 0; i < count; i++) {
-        var val = '';
-        if (userAnswer) {
-            var userParts = userAnswer.split(/\s+/);
-            val = userParts[i] || '';
+    var html = '';
+    var userParts = userAnswer ? userAnswer.split(/\s+/) : [];
+
+    if (taskData.task_number == 19) {
+        // Специальный layout для Теория игр: №19, №20 (2 поля), №21
+        var layout = [1, 2, 1];
+        var labels = ['№ 19', '№ 20', '№ 21'];
+        var idx = 0;
+        for (var row = 0; row < layout.length; row++) {
+            html += '<div class="mb-2"><small class="text-muted fw-bold">' + labels[row] + '</small><div class="d-flex gap-2 mt-1">';
+            for (var j = 0; j < layout[row]; j++) {
+                var val = userParts[idx] || '';
+                html += '<input type="text" class="form-control answer-input" data-idx="' + idx + '" value="' + val + '" ' + (answered ? 'disabled' : '') + ' style="width:120px">';
+                idx++;
+            }
+            html += '</div></div>';
         }
-        html += '<input type="text" class="form-control answer-input" data-idx="' + i + '" value="' + val + '" ' + (answered ? 'disabled' : '') + ' style="width:120px">';
+    } else {
+        html = '<div class="d-flex gap-2">';
+        for (var i = 0; i < count; i++) {
+            var val = userParts[i] || '';
+            html += '<input type="text" class="form-control answer-input" data-idx="' + i + '" value="' + val + '" ' + (answered ? 'disabled' : '') + ' style="width:120px">';
+        }
+        html += '</div>';
     }
-    html += '</div>';
     return html;
 }
 
