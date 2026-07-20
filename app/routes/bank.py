@@ -138,6 +138,23 @@ def update_task(
     return task
 
 
+@router.post("/tasks/batch-set-answer-count")
+def batch_set_answer_count(
+    task_number: int,
+    answer_count: int = 2,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403)
+
+    updated = db.query(models.TaskBank).filter(
+        models.TaskBank.task_number == task_number
+    ).update({"answer_count": answer_count}, synchronize_session=False)
+    db.commit()
+    return {"message": f"Updated {updated} tasks", "updated": updated}
+
+
 @router.delete("/tasks")
 def delete_all_tasks(
     task_number: Optional[int] = None,
