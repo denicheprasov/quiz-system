@@ -142,10 +142,6 @@
                         <option value="impossible">💀 Легче умереть</option>
                     </select>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Количество полей для ответа</label>
-                    <input type="number" class="form-control" id="editAnswerCount" min="1" max="10" value="1">
-                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
@@ -397,7 +393,6 @@ function editTask(taskId) {
         document.getElementById('editAnswer').value = task.correct_answer || '';
         document.getElementById('editImageUrl').value = task.image_url || '';
         document.getElementById('editDifficulty').value = task.difficulty || '';
-        document.getElementById('editAnswerCount').value = task.answer_count || 1;
         new bootstrap.Modal(document.getElementById('editModal')).show();
     })
     .catch(function() { alert('Ошибка загрузки задания'); });
@@ -409,8 +404,7 @@ function saveEdit() {
         text: document.getElementById('editText').value,
         correct_answer: document.getElementById('editAnswer').value,
         image_url: document.getElementById('editImageUrl').value,
-        difficulty: document.getElementById('editDifficulty').value,
-        answer_count: parseInt(document.getElementById('editAnswerCount').value) || 1
+        difficulty: document.getElementById('editDifficulty').value
     };
 
     fetch('/bank/tasks/' + id, {
