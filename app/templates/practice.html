@@ -140,13 +140,13 @@ document.getElementById('startForm').addEventListener('submit', async function(e
     }
 });
 
-function generateAnswerInputs(taskData, answered) {
+function generateAnswerInputs(taskData, answered, userAnswer) {
     var count = taskData.answer_count || 1;
     var html = '<div class="d-flex gap-2">';
     for (var i = 0; i < count; i++) {
         var val = '';
-        if (answered && task.user_answer) {
-            var userParts = task.user_answer.split(/\s+/);
+        if (userAnswer) {
+            var userParts = userAnswer.split(/\s+/);
             val = userParts[i] || '';
         }
         html += '<input type="text" class="form-control answer-input" data-idx="' + i + '" value="' + val + '" ' + (answered ? 'disabled' : '') + ' style="width:120px">';
@@ -177,7 +177,7 @@ function showTask(index) {
                 ${taskData.file_url ? `<p class="mt-2"><a href="${taskData.file_url}" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>` : ''}
                 <div class="mt-3" id="answerFields">
                     <label class="form-label">Ваш ответ:</label>
-                    ${generateAnswerInputs(taskData, answered)}
+                    ${generateAnswerInputs(taskData, answered, task.user_answer)}
                     ${answered ? `
                         <div class="mt-2">
                             <span class="badge ${task.is_correct ? 'bg-success' : 'bg-danger'}">
