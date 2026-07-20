@@ -60,9 +60,11 @@ async function loadVariant() {
         html += '<div class="mb-3" data-answer-count="' + (task.answer_count || 1) + '" data-correct="' + task.correct_answer + '">';
         html += '<label class="form-label">Ваш ответ:</label>';
         var ac = task.answer_count || 1;
+        html += '<div class="d-flex gap-2">';
         for (var ai = 0; ai < ac; ai++) {
-            html += '<div class="mb-1"><input type="text" class="form-control answer-input" data-ai="' + ai + '" data-id="' + vt.id + '"></div>';
+            html += '<input type="text" class="form-control answer-input" data-ai="' + ai + '" data-id="' + vt.id + '" style="width:120px">';
         }
+        html += '</div>';
         html += '</div>';
         html += '<div class="result-feedback mt-1"></div>';
         html += '<div class="retry-btn mt-1"></div>';
