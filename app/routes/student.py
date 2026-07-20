@@ -9,10 +9,10 @@ from app.auth import get_user_from_request
 
 
 def _normalize_numbers(val: str) -> list:
-    """Извлекает все числа из строки, возвращает отсортированный список для сравнения"""
-    clean = re.sub(r'\d+\)', '', val)  # удаляем подписи вида "19)" "20)" "21)"
+    """Извлекает все числа из строки в порядке их появления"""
+    clean = re.sub(r'\d+\)', '', val)
     nums = re.findall(r"-?\d+", clean.replace("<br/>", " ").replace("\n", " "))
-    return sorted(nums, key=lambda x: int(x))
+    return nums
 
 
 router = APIRouter(prefix="/student", tags=["student"])
