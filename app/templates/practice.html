@@ -142,15 +142,16 @@ document.getElementById('startForm').addEventListener('submit', async function(e
 
 function generateAnswerInputs(taskData, answered) {
     var count = taskData.answer_count || 1;
-    var html = '';
+    var html = '<div class="d-flex gap-2">';
     for (var i = 0; i < count; i++) {
         var val = '';
         if (answered && task.user_answer) {
             var userParts = task.user_answer.split(/\s+/);
             val = userParts[i] || '';
         }
-        html += '<input type="text" class="form-control answer-input mb-1" data-idx="' + i + '" value="' + val + '" ' + (answered ? 'disabled' : '') + '>';
+        html += '<input type="text" class="form-control answer-input" data-idx="' + i + '" value="' + val + '" ' + (answered ? 'disabled' : '') + ' style="width:120px">';
     }
+    html += '</div>';
     return html;
 }
 
