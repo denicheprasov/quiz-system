@@ -2,9 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request, Body
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 import random
+import re
 from datetime import datetime
 from app import models, schemas, auth, database
 from app.auth import get_user_from_request
+
+
+def _normalize_numbers(val: str) -> list:
+    """Извлекает все числа из строки, возвращает отсортированный список для сравнения"""
+    nums = re.findall(r"-?\d+", val.replace("<br/>", " ").replace("\n", " "))
+    return sorted(nums, key=lambda x: int(x))
+
 
 router = APIRouter(prefix="/student", tags=["student"])
 
@@ -329,7 +337,7 @@ def answer_practice_task_api(
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    is_correct = answer_request.answer.strip() == task.correct_answer
+    is_correct = _normalize_numbers(answer_request.answer) == _normalize_numbers(task.correct_answer)
     points_earned = task.points if is_correct else 0
 
     practice_task.user_answer = answer_request.answer
@@ -537,7 +545,7 @@ def submit_variant(
         if not task:
             continue
         user_answer = answers.get(str(vt.id), "")
-        is_correct = user_answer.strip().lower() == task.correct_answer.strip().lower()
+        is_correct = _normalize_numbers(user_answer) == _normalize_numbers(task.correct_answer)
         if is_correct:
             correct += 1
         results.append({

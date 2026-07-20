@@ -82,7 +82,10 @@ function checkAll() {
         var retryBtn = card.querySelector('.retry-btn');
 
         card.classList.remove('correct', 'incorrect');
-        var isCorrect = inp.value.trim().toLowerCase() === inp.dataset.correct.toLowerCase();
+        function norm(s) { return (s || '').replace(/<br\/>/g, ' ').replace(/\n/g, ' ').match(/-?\d+/g) || []; }
+        var userNums = norm(inp.value).sort(function(a,b){return a-b;}).join(',');
+        var correctNums = norm(inp.dataset.correct).sort(function(a,b){return a-b;}).join(',');
+        var isCorrect = userNums === correctNums;
         card.classList.add(isCorrect ? 'correct' : 'incorrect');
 
         if (isCorrect) {
