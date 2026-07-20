@@ -72,6 +72,16 @@ async function loadVariant() {
                 }
                 html += '</div></div>';
             }
+        } else if (task.task_number == 25) {
+            var ai = 0;
+            for (var row = 0; row < 8; row++) {
+                html += '<div class="mb-2"><small class="text-muted fw-bold">' + (row + 1) + '</small><div class="d-flex gap-2 mt-1">';
+                for (var j = 0; j < 2; j++) {
+                    html += '<input type="text" class="form-control answer-input" data-ai="' + ai + '" data-id="' + vt.id + '" style="width:120px">';
+                    ai++;
+                }
+                html += '</div></div>';
+            }
         } else {
             html += '<div class="d-flex gap-2">';
             for (var ai2 = 0; ai2 < ac; ai2++) {
