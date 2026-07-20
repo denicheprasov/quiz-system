@@ -10,7 +10,8 @@ from app.auth import get_user_from_request
 
 def _normalize_numbers(val: str) -> list:
     """Извлекает все числа из строки, возвращает отсортированный список для сравнения"""
-    nums = re.findall(r"-?\d+", val.replace("<br/>", " ").replace("\n", " "))
+    clean = re.sub(r'\d+\)', '', val)  # удаляем подписи вида "19)" "20)" "21)"
+    nums = re.findall(r"-?\d+", clean.replace("<br/>", " ").replace("\n", " "))
     return sorted(nums, key=lambda x: int(x))
 
 

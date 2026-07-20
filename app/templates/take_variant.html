@@ -112,7 +112,7 @@ function checkAll() {
         var userAnswer = g.inputs.map(function(i) { return i.value.trim(); }).join(' ');
 
         card.classList.remove('correct', 'incorrect');
-        function norm(s) { return (s || '').replace(/<br\/>/g, ' ').replace(/\n/g, ' ').match(/-?\d+/g) || []; }
+        function norm(s) { return ((s || '').replace(/\d+\)/g, '')).replace(/<br\/>/g, ' ').replace(/\n/g, ' ').match(/-?\d+/g) || []; }
         var userNums = norm(userAnswer).sort(function(a,b){return a-b;}).join(',');
         var correctNums = norm(correctAnswer).sort(function(a,b){return a-b;}).join(',');
         var isCorrect = userNums === correctNums;
