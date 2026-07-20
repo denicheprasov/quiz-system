@@ -57,9 +57,13 @@ async function loadVariant() {
         html += '<p>' + task.text.replace(/\n/g, '<br>') + '</p>';
         if (task.image_url) html += '<img src="' + task.image_url + '" class="img-fluid rounded question-image">';
         if (task.file_url) html += '<p class="mt-2"><a href="' + task.file_url + '" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>';
-        html += '<div class="mb-3">';
-        html += '<label class="form-label">Ваш ответ:</label>';
-        html += '<input type="text" class="form-control answer-input" data-id="' + vt.id + '" data-correct="' + task.correct_answer + '">';
+        html += '<div class="mb-3" data-answer-count="' + (task.answer_count || 1) + '" data-correct="' + task.correct_answer + '">';
+        html += '<label class="form-label">' + ((task.answer_count || 1) > 1 ? 'Ответы:' : 'Ваш ответ:') + '</label>';
+        var ac = task.answer_count || 1;
+        var correctParts = task.correct_answer.split(/\s+/);
+        for (var ai = 0; ai < ac; ai++) {
+            html += '<div class="mb-1"><input type="text" class="form-control answer-input" data-ai="' + ai + '" data-id="' + vt.id + '" placeholder="Ответ ' + (ai+1) + '"></div>';
+        }
         html += '</div>';
         html += '<div class="result-feedback mt-1"></div>';
         html += '<div class="retry-btn mt-1"></div>';
@@ -75,16 +79,27 @@ async function loadVariant() {
 function checkAll() {
     var inputs = document.querySelectorAll('.answer-input');
     var allCorrect = true;
+    var groups = {};
 
     inputs.forEach(function(inp) {
-        var card = inp.closest('.task-card');
+        var id = inp.dataset.id;
+        if (!groups[id]) groups[id] = {inputs: [], card: inp.closest('.task-card')};
+        groups[id].inputs.push(inp);
+    });
+
+    Object.keys(groups).forEach(function(id) {
+        var g = groups[id];
+        var card = g.card;
         var feedback = card.querySelector('.result-feedback');
         var retryBtn = card.querySelector('.retry-btn');
+        var container = card.querySelector('[data-correct]');
+        var correctAnswer = container ? container.dataset.correct : '';
+        var userAnswer = g.inputs.map(function(i) { return i.value.trim(); }).join(' ');
 
         card.classList.remove('correct', 'incorrect');
         function norm(s) { return (s || '').replace(/<br\/>/g, ' ').replace(/\n/g, ' ').match(/-?\d+/g) || []; }
-        var userNums = norm(inp.value).sort(function(a,b){return a-b;}).join(',');
-        var correctNums = norm(inp.dataset.correct).sort(function(a,b){return a-b;}).join(',');
+        var userNums = norm(userAnswer).sort(function(a,b){return a-b;}).join(',');
+        var correctNums = norm(correctAnswer).sort(function(a,b){return a-b;}).join(',');
         var isCorrect = userNums === correctNums;
         card.classList.add(isCorrect ? 'correct' : 'incorrect');
 
@@ -110,12 +125,14 @@ function checkAll() {
 
 function retryTask(btn) {
     var card = btn.closest('.task-card');
-    var input = card.querySelector('.answer-input');
+    var inputs = card.querySelectorAll('.answer-input');
     var feedback = card.querySelector('.result-feedback');
 
-    input.disabled = false;
-    input.value = '';
-    input.focus();
+    inputs.forEach(function(inp) {
+        inp.disabled = false;
+        inp.value = '';
+    });
+    if (inputs.length > 0) inputs[0].focus();
     card.classList.remove('correct', 'incorrect');
     feedback.innerHTML = '';
     btn.remove();
@@ -127,7 +144,9 @@ async function finalSubmit() {
     var inputs = document.querySelectorAll('.answer-input');
     var answers = {};
     inputs.forEach(function(inp) {
-        answers[inp.dataset.id] = inp.value;
+        var id = inp.dataset.id;
+        if (answers[id] === undefined) answers[id] = '';
+        answers[id] += (answers[id] ? ' ' : '') + inp.value;
     });
 
     document.getElementById('checkBtn').disabled = true;
