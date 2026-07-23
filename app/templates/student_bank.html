@@ -126,7 +126,7 @@ function loadTasks() {
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${num}">
-                            Задание №${num} (${tasksForNumber.length} заданий)
+                            ${num == 19 ? 'Теория игр' : 'Задание №' + num} (${tasksForNumber.length} заданий)
                         </button>
                     </h2>
                     <div id="collapse${num}" class="accordion-collapse collapse" data-bs-parent="#tasksAccordion">
@@ -188,7 +188,7 @@ function viewTask(taskId) {
         let html = `
             <div class="card">
                 <div class="card-body">
-                    <h6>Задание №${task.task_number}</h6>
+                    <h6>${task.task_number == 19 ? 'Теория игр' : 'Задание №' + task.task_number}</h6>
                     <hr>
                     <p>${task.text.replace(/\n/g, '<br>')}</p>
                     ${task.image_url ? `<img src="${task.image_url}" class="img-fluid rounded mb-2 question-image">` : ''}
