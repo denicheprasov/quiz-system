@@ -119,11 +119,6 @@ function loadTasks() {
                 }
                 html += '</div>';
                 html += '<p class="mb-2">' + task.text.replace(/\n/g, '<br>') + '</p>';
-                if (task.image_url) {
-                    task.image_url.split('\n').forEach(function(url) {
-                        html += '<img src="' + url + '" class="img-fluid rounded question-image mb-2" style="display:block;margin:8px auto;max-width:400px">';
-                    });
-                }
                 if (task.file_url) {
                     task.file_url.split('\n').forEach(function(url) {
                         html += '<p class="mb-1"><a href="' + url + '" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>';
