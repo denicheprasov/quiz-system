@@ -85,7 +85,7 @@ function loadTasks() {
     const difficulty = document.getElementById('filterDifficulty').value;
     const search = document.getElementById('searchInput').value.toLowerCase();
     
-    let url = '/student/api/bank?limit=1000';
+    let url = '/student/api/bank?limit=9999';
     if (number) url += '&task_number=' + number;
     if (difficulty) url += '&difficulty=' + difficulty;
     
