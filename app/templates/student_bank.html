@@ -191,7 +191,6 @@ function viewTask(taskId) {
                     <h6>${task.task_number == 19 ? 'Теория игр' : 'Задание №' + task.task_number}</h6>
                     <hr>
                     <p>${task.text.replace(/\n/g, '<br>')}</p>
-                    ${task.image_url ? `<img src="${task.image_url}" class="img-fluid rounded mb-2 question-image">` : ''}
                     ${task.file_url ? task.file_url.split('\n').map(function(url) {
                         return '<p class="mt-1"><a href="' + url + '" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>';
                     }).join('') : ''}
