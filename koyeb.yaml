@@ -1,0 +1,21 @@
+name: quiz-system
+services:
+  - name: quiz-system
+    type: web
+    instance_type: nano
+    regions:
+      - fra
+    git:
+      repository: denicheprasov/quiz-system
+      branch: main
+    build_command: pip install -r requirements.txt
+    run_command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - port: 8000
+    env:
+      - name: SECRET_KEY
+        value: 78f1fe3547d298be1bff8d69a48f42c31a8ff9c1b334c6063c314f10ef23b813
+      - name: ALLOWED_ORIGINS
+        value: https://quiz-system.koyeb.app
+      # DATABASE_URL задаётся автоматически при подключении PostgreSQL
+      # или вручную в Settings -> Environment variables
