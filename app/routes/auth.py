@@ -7,7 +7,7 @@ import os
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-IS_PRODUCTION = os.environ.get("RENDER", "") or os.environ.get("IS_PRODUCTION", "")
+IS_PRODUCTION = os.environ.get("IS_PRODUCTION", "")
 RATE_LIMIT_ENABLED = os.environ.get("RATE_LIMIT_ENABLED", "1") == "1"
 
 

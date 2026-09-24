@@ -11,7 +11,7 @@ import os
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
-    if os.environ.get("RENDER") or os.environ.get("IS_PRODUCTION"):
+    if os.environ.get("IS_PRODUCTION"):
         raise RuntimeError(
             "SECRET_KEY environment variable must be set in production"
         )
