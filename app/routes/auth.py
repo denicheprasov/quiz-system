@@ -110,11 +110,11 @@ def login_route(request: Request, user_data: dict, response: Response, db: Sessi
 
 
 if RATE_LIMIT_ENABLED:
-    @router.post("/login", response_model=schemas.Token)
+    @router.post("/login", response_model=schemas.LoginResponse)
     @limiter.limit("10/minute")
     def login(request: Request, user_data: dict, response: Response, db: Session = Depends(database.get_db)):
         return login_route(request, user_data, response, db)
 else:
-    @router.post("/login", response_model=schemas.Token)
+    @router.post("/login", response_model=schemas.LoginResponse)
     def login(request: Request, user_data: dict, response: Response, db: Session = Depends(database.get_db)):
         return login_route(request, user_data, response, db)

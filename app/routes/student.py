@@ -1,18 +1,42 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Body
+from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 import random
 import re
 from datetime import datetime
-from app import models, schemas, auth, database
+from app import models, schemas, database
 from app.auth import get_user_from_request
+from app.utils import utcnow
 
 
 def _normalize_numbers(val: str) -> list:
     """Извлекает все числа из строки в порядке их появления"""
+    if not val:
+        return []
     clean = re.sub(r'\d+\)', '', val)
     nums = re.findall(r"-?\d+", clean.replace("<br/>", " ").replace("\n", " "))
     return nums
+
+
+def _normalize_text(val: str) -> str:
+    if not val:
+        return ""
+    text = val.replace("<br/>", " ").replace("<br>", " ").replace("\n", " ")
+    return re.sub(r"\s+", " ", text).strip().casefold()
+
+
+def _answers_match(user_answer: str, correct_answer: str) -> bool:
+    """Сравнивает ответ ученика с эталоном.
+
+    Если эталон содержит числа, сравниваются извлечённые числа (поддерживается
+    формат "1) 2) 3" и произвольные разделители). Иначе ответы сравниваются
+    как нормализованные строки, поэтому два текстовых ответа больше не
+    считаются совпадающими автоматически.
+    """
+    correct_nums = _normalize_numbers(correct_answer)
+    if correct_nums:
+        return _normalize_numbers(user_answer) == correct_nums
+    return _normalize_text(user_answer) == _normalize_text(correct_answer)
 
 
 router = APIRouter(prefix="/student", tags=["student"])
@@ -130,7 +154,7 @@ def student_dashboard_api(request: Request, db: Session = Depends(database.get_d
     }
 
 
-@router.get("/api/bank", response_model=List[schemas.TaskBankResponse])
+@router.get("/api/bank", response_model=List[schemas.TaskBankPublic])
 def get_student_bank_api(
     request: Request,
     task_number: Optional[int] = None,
@@ -158,7 +182,7 @@ def get_student_bank_api(
     )
 
 
-@router.get("/api/bank/task/{task_id}")
+@router.get("/api/bank/task/{task_id}", response_model=schemas.TaskBankPublic)
 def get_student_task_api(
     task_id: int, request: Request, db: Session = Depends(database.get_db)
 ):
@@ -277,11 +301,23 @@ def clear_history_api(request: Request, db: Session = Depends(database.get_db)):
         for pt in db.query(models.PracticeTask).filter(models.PracticeTask.session_id == sid).all():
             pt.user_answer = None
             pt.is_correct = None
+            pt.points_earned = 0
             pt.answered_at = None
+
+    if session_ids:
+        db.query(models.PracticeSession).filter(
+            models.PracticeSession.id.in_(session_ids)
+        ).update(
+            {"completed_tasks": 0, "correct_answers": 0, "completed_at": None},
+            synchronize_session=False,
+        )
 
     db.query(models.VariantAssignment).filter(
         models.VariantAssignment.student_id == current_user.id
-    ).update({"results": None}, synchronize_session=False)
+    ).update(
+        {"results": None, "score": 0, "total": 0},
+        synchronize_session=False,
+    )
 
     db.commit()
     return {"message": "History cleared"}
@@ -338,20 +374,20 @@ def answer_practice_task_api(
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    is_correct = _normalize_numbers(answer_request.answer) == _normalize_numbers(task.correct_answer)
+    is_correct = _answers_match(answer_request.answer, task.correct_answer)
     points_earned = task.points if is_correct else 0
 
     practice_task.user_answer = answer_request.answer
     practice_task.is_correct = is_correct
     practice_task.points_earned = points_earned
-    practice_task.answered_at = datetime.utcnow()
+    practice_task.answered_at = utcnow()
 
     session.completed_tasks += 1
     if is_correct:
         session.correct_answers += 1
 
     if session.completed_tasks >= session.total_tasks:
-        session.completed_at = datetime.utcnow()
+        session.completed_at = utcnow()
 
     db.commit()
 
@@ -381,7 +417,7 @@ def finish_practice_api(
     if not session:
         raise HTTPException(status_code=404)
 
-    session.completed_at = datetime.utcnow()
+    session.completed_at = utcnow()
     db.commit()
     return {"message": "Practice completed"}
 
@@ -516,6 +552,47 @@ def generate_student_variant_api(
     return variant
 
 
+@router.post("/variant/{variant_id}/check")
+def check_variant(
+    variant_id: int,
+    request: Request,
+    answers: dict = Body({}),
+    db: Session = Depends(database.get_db),
+):
+    """Проверить ответы варианта без сохранения результата.
+
+    Возвращает только признак правильности, чтобы правильные ответы
+    не раскрывались до завершения варианта.
+    """
+    current_user = get_user_from_request(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401)
+
+    variant = (
+        db.query(models.Variant)
+        .options(
+            joinedload(models.Variant.variant_tasks).joinedload(models.VariantTask.task)
+        )
+        .filter(models.Variant.id == variant_id)
+        .first()
+    )
+    if not variant:
+        raise HTTPException(status_code=404, detail="Variant not found")
+
+    results = []
+    for vt in variant.variant_tasks:
+        task = vt.task
+        user_answer = answers.get(str(vt.id), "")
+        is_correct = bool(task) and _answers_match(user_answer, task.correct_answer)
+        results.append({
+            "variant_task_id": vt.id,
+            "order_number": vt.order_number,
+            "is_correct": is_correct,
+        })
+
+    return {"results": results}
+
+
 @router.post("/variant/{variant_id}/submit")
 def submit_variant(
     variant_id: int,
@@ -546,7 +623,7 @@ def submit_variant(
         if not task:
             continue
         user_answer = answers.get(str(vt.id), "")
-        is_correct = _normalize_numbers(user_answer) == _normalize_numbers(task.correct_answer)
+        is_correct = _answers_match(user_answer, task.correct_answer)
         if is_correct:
             correct += 1
         results.append({

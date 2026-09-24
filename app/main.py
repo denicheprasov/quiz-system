@@ -11,75 +11,83 @@ from app.routes import auth, quizzes, bank, variants, student, groups
 from app.auth import get_current_user, get_user_from_request, get_display_name, greeting
 from app import models
 from sqlalchemy.orm import Session
+import logging
 import os
+import secrets
 
-from sqlalchemy import text, func
+from sqlalchemy import inspect, text
 
-for col in ["last_name", "first_name", "patronymic"]:
+logger = logging.getLogger(__name__)
+
+# Колонки, добавленные в моделях после первого релиза. Ключ - таблица,
+# значение - {колонка: DDL}. DDL использует общие типы, совместимые
+# и с SQLite, и с PostgreSQL.
+_COLUMN_MIGRATIONS = {
+    "users": {
+        "last_name": "VARCHAR(100)",
+        "first_name": "VARCHAR(100)",
+        "patronymic": "VARCHAR(100)",
+    },
+    "variant_assignments": {
+        "score": "INTEGER DEFAULT 0",
+        "total": "INTEGER DEFAULT 0",
+        "results": "JSON",
+        "due_date": "TIMESTAMP",
+    },
+    "task_bank": {
+        "file_url": "VARCHAR(500)",
+    },
+}
+
+# Расширение длины legacy-колонок. Поддерживается только PostgreSQL.
+_TYPE_WIDENINGS = [
+    ("task_bank", "correct_answer"),
+    ("task_bank", "image_url"),
+    ("task_bank", "file_url"),
+]
+
+
+def _run_startup_migrations():
+    """Идемпотентно приводит схему БД в актуальное состояние.
+
+    Создаёт отсутствующие таблицы и добавляет новые колонки. В отличие от
+    прежнего набора ``try/except: pass``, ошибки логируются, а не глотаются.
+    """
     try:
-        with engine.connect() as conn:
-            conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} VARCHAR(100)"))
-            conn.commit()
-    except Exception:
-        pass
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logger.error("Failed to create tables: %s", e)
+        return
 
-for col in ["score", "total", "results"]:
-    try:
-        with engine.connect() as conn:
-            if col == "results":
-                conn.execute(text("ALTER TABLE variant_assignments ADD COLUMN results JSON"))
-            else:
-                conn.execute(text(f"ALTER TABLE variant_assignments ADD COLUMN {col} INTEGER DEFAULT 0"))
-            conn.commit()
-    except Exception:
-        pass
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
 
-try:
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE task_bank ALTER COLUMN correct_answer TYPE TEXT USING correct_answer::text"))
-        conn.commit()
-except Exception:
-    pass
+    for table, columns in _COLUMN_MIGRATIONS.items():
+        if table not in existing_tables:
+            continue
+        existing_columns = {c["name"] for c in inspector.get_columns(table)}
+        for column, ddl in columns.items():
+            if column in existing_columns:
+                continue
+            try:
+                with engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}"))
+                    logger.info("Added column %s.%s", table, column)
+            except Exception as e:
+                logger.warning("Could not add column %s.%s: %s", table, column, e)
 
-try:
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE variant_assignments ADD COLUMN due_date TIMESTAMP"))
-        conn.commit()
-except Exception:
-    pass
+    if engine.dialect.name == "postgresql":
+        for table, column in _TYPE_WIDENINGS:
+            try:
+                with engine.begin() as conn:
+                    conn.execute(text(
+                        f"ALTER TABLE {table} ALTER COLUMN {column} TYPE TEXT USING {column}::text"
+                    ))
+            except Exception as e:
+                logger.warning("Could not widen %s.%s: %s", table, column, e)
 
-try:
-    with engine.connect() as conn:
-        conn.execute(text("CREATE TABLE IF NOT EXISTS variant_assignments (id INTEGER PRIMARY KEY AUTOINCREMENT, variant_id INTEGER NOT NULL REFERENCES variants(id), student_id INTEGER NOT NULL REFERENCES users(id), assigned_by INTEGER NOT NULL REFERENCES users(id), assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, status VARCHAR(20) DEFAULT 'pending')"))
-        conn.commit()
-except Exception:
-    pass
 
-try:
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE task_bank ADD COLUMN file_url VARCHAR(500)"))
-        conn.commit()
-except Exception:
-    pass
-
-try:
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE task_bank ALTER COLUMN image_url TYPE TEXT USING image_url::text"))
-        conn.commit()
-except Exception:
-    pass
-
-try:
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE task_bank ALTER COLUMN file_url TYPE TEXT USING file_url::text"))
-        conn.commit()
-except Exception:
-    pass
-
-try:
-    Base.metadata.create_all(bind=engine)
-except Exception as e:
-    print(f"Failed to create tables: {e}")
+_run_startup_migrations()
 
 app = FastAPI(title="Quiz App", version="1.0.0")
 app.state.limiter = limiter
@@ -414,22 +422,35 @@ async def logout():
 
 
 UPLOAD_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".pdf"}
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    ext = os.path.splitext(file.filename)[1].lower()
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: models.User = Depends(get_current_user),
+):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403, detail="Only teachers can upload files")
+
+    ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in UPLOAD_EXTENSIONS:
         raise HTTPException(status_code=400, detail=f"File type {ext} not allowed")
+
+    content = await file.read()
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail="File too large (max 10 MB)")
 
     filename = f"{os.urandom(8).hex()}{ext}"
     filepath = os.path.join(UPLOAD_DIR, filename)
 
-    content = await file.read()
     with open(filepath, "wb") as f:
         f.write(content)
 
     return {"url": f"/uploads/{filename}", "filename": filename}
+
+
+PROMOTE_SECRET = os.environ.get("PROMOTE_SECRET")
 
 
 @app.post("/admin/promote")
@@ -438,7 +459,7 @@ def promote_to_teacher(
     secret: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    if secret != "promote2024":
+    if not PROMOTE_SECRET or not secrets.compare_digest(secret, PROMOTE_SECRET):
         raise HTTPException(status_code=403)
 
     user = db.query(models.User).filter(models.User.username == username).first()
@@ -488,8 +509,24 @@ def delete_user(
     if not user:
         raise HTTPException(status_code=404)
 
-    db.query(models.GroupMember).filter(models.GroupMember.student_id == user_id).delete()
+    created_group_ids = db.query(models.StudentGroup.id).filter(
+        models.StudentGroup.created_by == user_id
+    )
+    db.query(models.GroupMember).filter(
+        (models.GroupMember.student_id == user_id)
+        | (models.GroupMember.group_id.in_(created_group_ids))
+    ).delete(synchronize_session=False)
     db.query(models.StudentGroup).filter(models.StudentGroup.created_by == user_id).delete()
+
+    created_variant_ids = db.query(models.Variant.id).filter(
+        models.Variant.created_by == user_id
+    )
+    db.query(models.VariantAssignment).filter(
+        (models.VariantAssignment.student_id == user_id)
+        | (models.VariantAssignment.assigned_by == user_id)
+        | (models.VariantAssignment.variant_id.in_(created_variant_ids))
+    ).delete(synchronize_session=False)
+
     db.query(models.PracticeTask).filter(
         models.PracticeTask.session_id.in_(
             db.query(models.PracticeSession.id).filter(models.PracticeSession.user_id == user_id)
@@ -524,8 +561,9 @@ async def health():
 
 
 @app.get("/debug/uploads")
-async def debug_uploads():
-    import os
+async def debug_uploads(current_user: models.User = Depends(get_current_user)):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403)
     files = []
     if os.path.exists(UPLOAD_DIR):
         for f in os.listdir(UPLOAD_DIR):
@@ -535,9 +573,10 @@ async def debug_uploads():
 
 
 @app.get("/debug/db")
-async def debug_db():
-    from sqlalchemy import inspect as sa_inspect
-    insp = sa_inspect(engine)
+async def debug_db(current_user: models.User = Depends(get_current_user)):
+    if not current_user.is_teacher:
+        raise HTTPException(status_code=403)
+    insp = inspect(engine)
     tables = insp.get_table_names()
     columns = {}
     for t in tables:

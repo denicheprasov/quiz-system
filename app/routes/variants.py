@@ -3,8 +3,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from typing import List, Optional
-from datetime import datetime, date
+from typing import Optional
+from datetime import datetime
 import random
 from app import models, schemas, auth, database
 
@@ -123,15 +123,22 @@ def generate_variant(
     db.refresh(variant)
     return variant
 
-@router.get("/", response_model=List[schemas.VariantResponse])
+@router.get("/", response_model=None)
 def get_variants(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    """Получить список всех вариантов"""
+    """Получить список всех вариантов.
+
+    Учителям возвращаются карточки с ответами и группами,
+    ученикам - публичные карточки без правильных ответов.
+    """
     variants = db.query(models.Variant).offset(skip).limit(limit).all()
+    if not current_user.is_teacher:
+        return [schemas.VariantPublic.model_validate(v) for v in variants]
+
     result = []
     for v in variants:
         creator = db.query(models.User).filter(models.User.id == v.created_by).first()
@@ -156,17 +163,23 @@ def get_variants(
         result.append(r)
     return result
 
-@router.get("/{variant_id}", response_model=schemas.VariantResponse)
+@router.get("/{variant_id}", response_model=None)
 def get_variant(
     variant_id: int,
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    """Получить вариант по ID"""
+    """Получить вариант по ID.
+
+    Учителю возвращается полная карточка с правильными ответами,
+    ученику - публичная карточка без ответов.
+    """
     variant = db.query(models.Variant).filter(models.Variant.id == variant_id).first()
     if not variant:
         raise HTTPException(status_code=404, detail="Variant not found")
-    return variant
+    if current_user.is_teacher:
+        return schemas.VariantResponse.model_validate(variant)
+    return schemas.VariantPublic.model_validate(variant)
 
 
 @router.post("/{variant_id}/assign/{group_id}")

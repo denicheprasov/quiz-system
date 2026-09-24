@@ -34,7 +34,7 @@ def test_submit_answer(client, student_headers, sample_task):
     }, headers=student_headers)
     assert r.status_code == 200
     session = r.json()
-    task_id = session["tasks"][0]["id"]
+    task_id = session["tasks"][0]["task"]["id"]
 
     # Submit correct answer
     r2 = client.post(f"/student/api/practice/{session['id']}/answer", json={
@@ -52,7 +52,7 @@ def test_submit_wrong_answer(client, student_headers, sample_task):
         "count": 1
     }, headers=student_headers)
     session = r.json()
-    task_id = session["tasks"][0]["id"]
+    task_id = session["tasks"][0]["task"]["id"]
 
     r2 = client.post(f"/student/api/practice/{session['id']}/answer", json={
         "task_id": task_id,
@@ -60,6 +60,52 @@ def test_submit_wrong_answer(client, student_headers, sample_task):
     }, headers=student_headers)
     assert r2.status_code == 200
     assert r2.json()["is_correct"] is False
+
+
+def _text_task(db):
+    from app.models import TaskBank
+    task = TaskBank(
+        task_number=5,
+        source_file="test_string.html",
+        text="Text task",
+        correct_answer="привет",
+        answer_type="string",
+        points=1,
+    )
+    db.add(task)
+    db.commit()
+    db.refresh(task)
+    return task
+
+
+def test_text_answer_is_not_always_correct(client, student_headers, db):
+    _text_task(db)
+    r = client.post("/student/api/practice/start", json={
+        "task_numbers": [5], "count": 1
+    }, headers=student_headers)
+    session = r.json()
+    task_id = session["tasks"][0]["task"]["id"]
+
+    r2 = client.post(f"/student/api/practice/{session['id']}/answer", json={
+        "task_id": task_id,
+        "answer": "пока"
+    }, headers=student_headers)
+    assert r2.json()["is_correct"] is False
+
+
+def test_text_answer_matches_case_insensitively(client, student_headers, db):
+    _text_task(db)
+    r = client.post("/student/api/practice/start", json={
+        "task_numbers": [5], "count": 1
+    }, headers=student_headers)
+    session = r.json()
+    task_id = session["tasks"][0]["task"]["id"]
+
+    r2 = client.post(f"/student/api/practice/{session['id']}/answer", json={
+        "task_id": task_id,
+        "answer": "Привет"
+    }, headers=student_headers)
+    assert r2.json()["is_correct"] is True
 
 
 def test_practice_history(client, student_headers, sample_task):

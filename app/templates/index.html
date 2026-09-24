@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Система тестирования ЕГЭ{% endblock %}
+{% block title %}Тренировочные варианты ЕГЭ по информатике{% endblock %}
 
 {% block content %}
 <div class="hero text-center mb-5">
     <div class="container">
-        <h1 class="mb-3">🎓 Подготовка к ЕГЭ по информатике</h1>
-        <p class="mb-4 mx-auto" style="max-width:600px">
-            Создавайте тесты, тренируйтесь в решении заданий, отслеживайте прогресс 
-            и готовьтесь к экзамену эффективно
+        <div class="eyebrow text-white-50 mb-3">ЕГЭ · Информатика · 2026</div>
+        <h1 class="mb-3">Тренировочные варианты и задания</h1>
+        <p class="mb-4 mx-auto" style="max-width:620px">
+            Решайте варианты в формате экзамена, тренируйтесь по номерам заданий
+            и следите за прогрессом — всё в одном месте
         </p>
         {% if not user %}
         <div class="hero-buttons">
-            <a href="/register" class="btn btn-light btn-lg px-4 me-2 rounded-pill fw-bold">🚀 Начать</a>
+            <a href="/register" class="btn btn-light btn-lg px-4 me-2 rounded-pill fw-bold">🚀 Начать бесплатно</a>
             <a href="/login" class="btn btn-outline-light btn-lg px-4 rounded-pill">Войти</a>
         </div>
         {% else %}
@@ -23,31 +24,7 @@
     </div>
 </div>
 
-<div class="row g-4 mb-5">
-    <div class="col-md-4">
-        <div class="feature-card card h-100 p-4 text-center">
-            <div class="feature-icon mx-auto" style="background:#e8f5e9;"><span style="font-size:2rem">📚</span></div>
-            <h5 class="fw-bold">Банк заданий</h5>
-            <p class="text-muted small mb-0">Более 1000 актуальных заданий ЕГЭ по информатике с ответами и решениями</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="feature-card card h-100 p-4 text-center">
-            <div class="feature-icon mx-auto" style="background:#e3f2fd;"><span style="font-size:2rem">🎯</span></div>
-            <h5 class="fw-bold">Тренировки</h5>
-            <p class="text-muted small mb-0">Выбирайте номера заданий и тренируйтесь в удобном темпе с мгновенной проверкой</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="feature-card card h-100 p-4 text-center">
-            <div class="feature-icon mx-auto" style="background:#fce4ec;"><span style="font-size:2rem">📊</span></div>
-            <h5 class="fw-bold">Статистика</h5>
-            <p class="text-muted small mb-0">Отслеживайте прогресс, анализируйте ошибки и улучшайте результаты</p>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4 mb-5">
+<div class="row g-4 mb-4">
     <div class="col-sm-4">
         <div class="stat-card">
             <div class="stat-number">27</div>
@@ -68,14 +45,60 @@
     </div>
 </div>
 
-<div class="hero text-center mb-4" style="padding:60px 40px">
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mt-5 mb-3">
+    <div>
+        <div class="eyebrow mb-1">Разделы</div>
+        <h2 class="section-title h3 mb-0">Что внутри</h2>
+    </div>
+    <div class="chip-bar">
+        <a class="chip active" href="/student/bank">Все</a>
+        <a class="chip" href="/student/bank?task_number=19">Теория игр</a>
+        <a class="chip" href="/student/practice">Тренировки</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="feature-card card h-100 p-4">
+            <div class="feature-icon" style="background:rgba(79,70,229,0.12)">📚</div>
+            <span class="badge bg-primary-subtle text-primary align-self-start mb-2">Каталог</span>
+            <h5 class="fw-bold mb-2">Банк заданий</h5>
+            <p class="text-muted small mb-3">Актуальные задания ЕГЭ по информатике с ответами и решениями, сгруппированные по номерам КИМ</p>
+            <a href="/student/bank" class="btn btn-outline-primary btn-sm align-self-start">Открыть каталог</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card card h-100 p-4">
+            <div class="feature-icon" style="background:rgba(124,58,237,0.12)">🎯</div>
+            <span class="badge bg-primary-subtle text-primary align-self-start mb-2">Практика</span>
+            <h5 class="fw-bold mb-2">Тренировки</h5>
+            <p class="text-muted small mb-3">Выбирайте номера заданий и тренируйтесь в удобном темпе с мгновенной проверкой ответа</p>
+            <a href="/student/practice" class="btn btn-outline-primary btn-sm align-self-start">Начать тренировку</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card card h-100 p-4">
+            <div class="feature-icon" style="background:rgba(16,185,129,0.14)">📊</div>
+            <span class="badge bg-primary-subtle text-primary align-self-start mb-2 mb-md-2">Прогресс</span>
+            <h5 class="fw-bold mb-2">Статистика</h5>
+            <p class="text-muted small mb-3">Отслеживайте прогресс, разбирайте ошибки и улучшайте результат от варианта к варианту</p>
+            <a href="/student/history" class="btn btn-outline-primary btn-sm align-self-start">Смотреть историю</a>
+        </div>
+    </div>
+</div>
+
+<div class="hero text-center" style="padding:56px 40px">
     <h2 class="fw-bold mb-3">Готовы начать подготовку?</h2>
-    <p class="mb-4 opacity-75 mx-auto" style="max-width:500px">
-        Присоединяйтесь к платформе и готовьтесь к ЕГЭ эффективно
+    <p class="mb-4 mx-auto" style="max-width:520px">
+        Создайте аккаунт и приступайте к решению вариантов прямо сейчас
     </p>
     {% if not user %}
     <div class="hero-buttons">
         <a href="/register" class="btn btn-light btn-lg px-5 rounded-pill fw-bold">🚀 Создать аккаунт</a>
+    </div>
+    {% else %}
+    <div class="hero-buttons">
+        <a href="/dashboard" class="btn btn-light btn-lg px-5 rounded-pill fw-bold">📊 Личный кабинет</a>
     </div>
     {% endif %}
 </div>

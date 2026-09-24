@@ -55,6 +55,19 @@ def test_student_cannot_create_variant(client, student_headers):
     assert r.status_code == 403
 
 
+def test_teacher_sees_answers_in_variant(client, teacher_headers, variant_with_task):
+    r = client.get(f"/variants/{variant_with_task.id}", headers=teacher_headers)
+    assert r.status_code == 200
+    task = r.json()["variant_tasks"][0]["task"]
+    assert task["correct_answer"] == "42"
+
+
+def test_student_variant_hides_answers(client, student_headers, variant_with_task):
+    r = client.get(f"/variants/{variant_with_task.id}", headers=student_headers)
+    assert r.status_code == 200
+    assert "correct_answer" not in r.text
+
+
 def test_assign_variant_to_group(client, teacher_headers, sample_variant, student_group_with_member):
     r = client.post(
         f"/variants/{sample_variant.id}/assign/{student_group_with_member.id}",

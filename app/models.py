@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import relationship
-from datetime import datetime
 from app.database import Base
+from app.utils import utcnow
 
 class User(Base):
     __tablename__ = "users"
@@ -14,7 +14,7 @@ class User(Base):
     first_name = Column(String(100), nullable=True)
     patronymic = Column(String(100), nullable=True)
     is_teacher = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     
     # Связи
     quizzes = relationship("Quiz", back_populates="creator")
@@ -39,7 +39,7 @@ class Quiz(Base):
     title = Column(String, index=True)
     description = Column(Text, nullable=True)
     created_by = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     is_active = Column(Boolean, default=True)
     
     creator = relationship("User", back_populates="quizzes")
@@ -62,7 +62,7 @@ class Question(Base):
     task_type = Column(String(20), default="standard")
     total_points = Column(Integer, default=1)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     
     quiz = relationship("Quiz", back_populates="questions")
 
@@ -75,7 +75,7 @@ class Result(Base):
     assigned_test_id = Column(Integer, ForeignKey("assigned_tests.id"), nullable=True)
     score = Column(Integer)
     total_possible = Column(Integer)
-    completed_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, default=utcnow)
     answers = Column(Text)
     
     user = relationship("User", back_populates="results")
@@ -105,7 +105,7 @@ class TaskBank(Base):
     difficulty = Column(String(20), default="base")
     tags = Column(String(255), nullable=True)
     is_verified = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     
     variant_tasks = relationship("VariantTask", back_populates="task")
     practice_tasks = relationship("PracticeTask", back_populates="task")
@@ -117,7 +117,7 @@ class Variant(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     created_by = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     is_active = Column(Boolean, default=True)
     is_public = Column(Boolean, default=False)
     
@@ -131,7 +131,7 @@ class VariantTask(Base):
     variant_id = Column(Integer, ForeignKey("variants.id"))
     task_bank_id = Column(Integer, ForeignKey("task_bank.id"))
     order_number = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     
     variant = relationship("Variant", back_populates="variant_tasks")
     task = relationship("TaskBank", back_populates="variant_tasks")
@@ -144,7 +144,7 @@ class AssignedTest(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     quiz_id = Column(Integer, ForeignKey("quizzes.id"))
     assigned_by = Column(Integer, ForeignKey("users.id"))
-    assigned_at = Column(DateTime, default=datetime.utcnow)
+    assigned_at = Column(DateTime, default=utcnow)
     due_date = Column(DateTime, nullable=True)
     status = Column(String(20), default="pending")
     
@@ -171,7 +171,7 @@ class PracticeSession(Base):
     total_tasks = Column(Integer, default=0)
     completed_tasks = Column(Integer, default=0)
     correct_answers = Column(Integer, default=0)
-    started_at = Column(DateTime, default=datetime.utcnow)
+    started_at = Column(DateTime, default=utcnow)
     completed_at = Column(DateTime, nullable=True)
 
     practice_user = relationship("User", back_populates="practice_sessions", foreign_keys=[user_id])
@@ -185,7 +185,7 @@ class StudentGroup(Base):
     name = Column(String(200), nullable=False)
     invite_code = Column(String(20), unique=True, nullable=False)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     creator = relationship("User", backref="created_groups")
     members = relationship("GroupMember", back_populates="group", cascade="all, delete-orphan")
@@ -197,7 +197,7 @@ class GroupMember(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     group_id = Column(Integer, ForeignKey("student_groups.id"), nullable=False)
     student_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    joined_at = Column(DateTime, default=datetime.utcnow)
+    joined_at = Column(DateTime, default=utcnow)
 
     group = relationship("StudentGroup", back_populates="members")
     student = relationship("User", backref="memberships")
@@ -226,7 +226,7 @@ class VariantAssignment(Base):
     variant_id = Column(Integer, ForeignKey("variants.id"), nullable=False)
     student_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     assigned_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-    assigned_at = Column(DateTime, default=datetime.utcnow)
+    assigned_at = Column(DateTime, default=utcnow)
     status = Column(String(20), default="pending")
     score = Column(Integer, default=0)
     total = Column(Integer, default=0)

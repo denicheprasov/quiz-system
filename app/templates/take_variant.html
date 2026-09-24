@@ -57,7 +57,7 @@ async function loadVariant() {
         html += '<p>' + task.text.replace(/\n/g, '<br>') + '</p>';
         if (task.image_url) html += '<img src="' + task.image_url + '" class="img-fluid rounded question-image">';
         if (task.file_url) html += '<p class="mt-2"><a href="' + task.file_url + '" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download"></i> Скачать файл</a></p>';
-        html += '<div class="mb-3" data-answer-count="' + (task.answer_count || 1) + '" data-correct="' + task.correct_answer + '">';
+        html += '<div class="mb-3" data-answer-count="' + (task.answer_count || 1) + '">';
         html += '<label class="form-label">Ваш ответ:</label>';
         var ac = task.answer_count || 1;
         if (task.task_number == 19) {
@@ -101,7 +101,7 @@ async function loadVariant() {
     container.innerHTML = html;
 }
 
-function checkAll() {
+async function checkAll() {
     var inputs = document.querySelectorAll('.answer-input');
     var allCorrect = true;
     var groups = {};
@@ -112,32 +112,53 @@ function checkAll() {
         groups[id].inputs.push(inp);
     });
 
+    var answers = {};
     Object.keys(groups).forEach(function(id) {
-        var g = groups[id];
-        var card = g.card;
-        var feedback = card.querySelector('.result-feedback');
-        var retryBtn = card.querySelector('.retry-btn');
-        var container = card.querySelector('[data-correct]');
-        var correctAnswer = container ? container.dataset.correct : '';
-        var userAnswer = g.inputs.map(function(i) { return i.value.trim(); }).join(' ');
-
-        card.classList.remove('correct', 'incorrect');
-        function norm(s) { return ((s || '').replace(/\d+\)/g, '')).replace(/<br\/>/g, ' ').replace(/\n/g, ' ').match(/-?\d+/g) || []; }
-        var userNums = norm(userAnswer).join(',');
-        var correctNums = norm(correctAnswer).join(',');
-        var isCorrect = userNums === correctNums;
-        card.classList.add(isCorrect ? 'correct' : 'incorrect');
-
-        if (isCorrect) {
-            feedback.innerHTML = '<span class="text-success fw-bold">✅ Верно</span>';
-            inp.disabled = true;
-            retryBtn.innerHTML = '';
-        } else {
-            feedback.innerHTML = '<span class="text-danger fw-bold">❌ Неверно</span>';
-            retryBtn.innerHTML = '<button class="btn btn-sm btn-outline-warning" onclick="retryTask(this)">🔄 Перерешать</button>';
-            allCorrect = false;
-        }
+        answers[id] = groups[id].inputs.map(function(i) { return i.value.trim(); }).join(' ');
     });
+
+    var checkBtn = document.getElementById('checkBtn');
+    var original = checkBtn.innerHTML;
+    checkBtn.disabled = true;
+    checkBtn.innerHTML = '⏳ Проверка...';
+
+    try {
+        const r = await fetch('/student/variant/' + {{ variant_id }} + '/check', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(answers)
+        });
+        if (!r.ok) throw new Error('Ошибка проверки: ' + r.status);
+        const data = await r.json();
+
+        data.results.forEach(function(res) {
+            var g = groups[String(res.variant_task_id)];
+            if (!g) return;
+            var card = g.card;
+            var feedback = card.querySelector('.result-feedback');
+            var retryBtn = card.querySelector('.retry-btn');
+
+            card.classList.remove('correct', 'incorrect');
+            card.classList.add(res.is_correct ? 'correct' : 'incorrect');
+
+            if (res.is_correct) {
+                feedback.innerHTML = '<span class="text-success fw-bold">✅ Верно</span>';
+                g.inputs.forEach(function(inp) { inp.disabled = true; });
+                retryBtn.innerHTML = '';
+            } else {
+                feedback.innerHTML = '<span class="text-danger fw-bold">❌ Неверно</span>';
+                retryBtn.innerHTML = '<button class="btn btn-sm btn-outline-warning" onclick="retryTask(this)">🔄 Перерешать</button>';
+                allCorrect = false;
+            }
+        });
+    } catch (error) {
+        alert('Ошибка проверки ответов');
+        console.error('Error:', error);
+    } finally {
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = original;
+    }
 
     if (allCorrect) {
         document.getElementById('finalBtn').classList.remove('d-none');

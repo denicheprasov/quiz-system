@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from typing import List, Optional, Dict
 from datetime import datetime
 from enum import Enum
@@ -27,8 +27,14 @@ class UserResponse(UserBase):
     id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserPublic(UserBase):
+    id: int
+    # Переопределяем тип: ответы не должны падать на legacy-email,
+    # не прошедших текущую валидацию регистрации.
+    email: str
 
 
 # ===== Question =====
@@ -52,8 +58,7 @@ class QuestionResponse(QuestionBase):
     total_points: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ===== Quiz =====
@@ -73,8 +78,7 @@ class QuizResponse(QuizBase):
     is_active: bool
     questions: List[QuestionResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ===== Assigned Test =====
@@ -95,8 +99,7 @@ class AssignedTestResponse(AssignedTestBase):
     status: str
     quiz: QuizResponse
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ===== Result =====
@@ -109,8 +112,7 @@ class ResultResponse(BaseModel):
     completed_at: datetime
     answers: Dict[str, List[str]]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ===== Auth =====
@@ -119,8 +121,13 @@ class Token(BaseModel):
     token_type: str
 
 
+class LoginResponse(Token):
+    user: UserPublic
+
+
 # ===== BANK =====
-class TaskBankBase(BaseModel):
+class TaskBankFields(BaseModel):
+    """Поля задания, безопасные для выдачи ученику."""
     task_number: int
     source_file: Optional[str] = None
     order_in_file: Optional[int] = None
@@ -129,13 +136,16 @@ class TaskBankBase(BaseModel):
     file_url: Optional[str] = None
     table_data: Optional[str] = None
     question: Optional[str] = None
-    correct_answer: str
     answer_type: str = "int"
     answer_count: int = 1
     points: int = 1
     topic: Optional[str] = None
     difficulty: Optional[str] = None
     tags: Optional[str] = None
+
+
+class TaskBankBase(TaskBankFields):
+    correct_answer: str
     is_verified: bool = True
 
 
@@ -147,8 +157,15 @@ class TaskBankResponse(TaskBankBase):
     id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TaskBankPublic(TaskBankFields):
+    """Задание без правильного ответа (для учеников)."""
+    id: int
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ===== VARIANT =====
@@ -162,13 +179,15 @@ class VariantCreate(VariantBase):
     task_ids: List[int]
 
 
-class VariantTaskResponse(BaseModel):
+class VariantTaskFields(BaseModel):
     id: int
     order_number: int
-    task: Optional[TaskBankResponse] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class VariantTaskResponse(VariantTaskFields):
+    task: Optional[TaskBankResponse] = None
 
 
 class VariantResponse(VariantBase):
@@ -180,8 +199,19 @@ class VariantResponse(VariantBase):
     is_active: bool
     variant_tasks: List[VariantTaskResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+class VariantTaskPublic(VariantTaskFields):
+    task: Optional[TaskBankPublic] = None
+
+
+class VariantPublic(VariantBase):
+    """Вариант без правильных ответов (для учеников)."""
+    id: int
+    variant_tasks: List[VariantTaskPublic] = []
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ===== PRACTICE =====
@@ -194,8 +224,7 @@ class PracticeTaskResponse(BaseModel):
     points_earned: int = 0
     answered_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PracticeSessionResponse(BaseModel):
@@ -208,8 +237,7 @@ class PracticeSessionResponse(BaseModel):
     completed_at: Optional[datetime]
     tasks: List[PracticeTaskResponse] = Field(default=[], validation_alias="practice_tasks")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PracticeStartRequest(BaseModel):
